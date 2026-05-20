@@ -1,0 +1,24 @@
+# Harness registry for the gRPC harness host.
+#
+# Read at startup (override the path with HARNESSES_CONFIG). Each [harness.<name>]
+# is launched as `command args...` as a subprocess per run; the literal {prompt}
+# is replaced with the run's prompt. Provide model/API-key env via the process
+# environment (e.g. a Kubernetes Secret on the task pod).
+#
+# Select a harness from the client via SpawnAgentRequest.harness (e.g. "pi-mono").
+
+[harness.demo]
+# Self-contained — works with no external tools installed (used for smoke tests).
+command = "bash"
+args = ["-c", "echo 'demo harness started'; echo \"prompt: {prompt}\"; for i in 1 2 3; do echo \"step $i\"; sleep 0.3; done; echo done"]
+
+[harness.pi-mono]
+# PLACEHOLDER — replace with pi-mono's real CLI (program + args). Ensure `pi-mono`
+# is on PATH (or use an absolute path) and that its model/API keys are in the env.
+command = "pi-mono"
+args = ["{prompt}"]
+
+[harness.claude]
+# Claude Code in non-interactive print mode. Needs ANTHROPIC_API_KEY in the env.
+command = "claude"
+args = ["-p", "{prompt}"]

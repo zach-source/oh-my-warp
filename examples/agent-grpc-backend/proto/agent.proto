@@ -46,6 +46,7 @@ message SpawnAgentRequest {
   string title = 3;
   string conversation_id = 4; // resume an existing conversation
   string parent_run_id = 5;   // for child/sub-agent runs
+  string harness = 6;         // which configured harness to run (e.g. "pi-mono", "claude", "demo")
 }
 message SpawnAgentResponse {
   string task_id = 1;
@@ -95,11 +96,12 @@ message StreamEventsRequest {
 }
 message AgentRunEvent {
   string run_id = 1;
-  string event_type = 2;
+  string event_type = 2; // "output" (stdout), "stderr", "started", "completed"
   string ref_id = 3;
   string execution_id = 4;
   string occurred_at = 5; // RFC3339
   int64 sequence = 6;
+  string text = 7;        // line of harness output (for "output"/"stderr"); exit info for "completed"
 }
 
 message ChatRequest {

@@ -1,46 +1,63 @@
-# Example: gRPC agent backend
+# Example: gRPC harness host
 
-A small, runnable **gRPC** (tonic) service that re-expresses Warp's agent operations as a clean RPC API. It's a **reference/foundation** for building a custom agent backend or middleware for this fork — *not* a drop-in Warp server (Warp speaks GraphQL + REST + SSE; see [`../../BACKEND_INTERFACE.md`](../../BACKEND_INTERFACE.md)). To put a gRPC backend behind Warp you bridge the two — see [Bridging into Warp](#bridging-into-warp).
+A small, runnable **gRPC** (tonic) service that runs a **coding-harness CLI**
+(pi-mono, Claude Code, …) as a sandboxed subprocess and exposes it over gRPC — so
+a harness can run on **your cloud** and be driven from Warp via an
+`AIClient`-decorator bridge. It's the **custom-backend** route from
+[`../../BACKEND_INTERFACE.md`](../../BACKEND_INTERFACE.md) (the alternative to
+running Warp's own cloud agents via `oz-agent-worker`).
 
-This crate is **independent of the `warp` Cargo workspace** (its `Cargo.toml` has an empty `[workspace]` table), so it never affects the main build.
+Independent of the `warp` Cargo workspace (its `Cargo.toml` has an empty
+`[workspace]` table), so it never affects the main build.
 
-## Layout
-- `proto/agent.proto` — the `AgentService` definition.
-- `src/bin/server.rs` — server with in-memory mock logic + a demo **auth interceptor (middleware)**.
-- `src/bin/client.rs` — smoke-test client (spawn → send → stream events → chat).
-- `build.rs` — compiles the proto via `tonic-build` (needs `protoc`).
+## Why this exists
+A custom harness like **pi-mono** can't be a *native* Warp cloud agent
+(`oz-agent-worker` only runs harnesses that Warp's `oz`/`warp-agent` knows). This
+host lets you run any harness CLI yourself and bridge it into Warp.
+
+## How it maps to Warp's agent ops
+| RPC | Behaviour | Warp op (for the bridge) |
+|---|---|---|
+| `SpawnAgent{harness, prompt}` | launch the configured harness in a fresh workspace dir | `POST /api/v1/agent/run` |
+| `StreamEvents{run_ids}` | stream the harness's stdout/stderr + `started`/`completed` | SSE `…/agent/events/stream` |
+| `SendMessage{to=[run_id], body}` | write a line to the harness's stdin (follow-up input) | `POST /api/v1/agent/messages` |
+| `Chat` | placeholder model turn (a real host calls an LLM) | — |
+
+## Harnesses (`harnesses.toml`)
+Each `[harness.<name>]` = a `command` + `args` (the literal `{prompt}` is
+substituted). A built-in **`demo`** harness is used if no config is found, so it
+runs without pi-mono/Claude installed. `pi-mono` and `claude` entries are stubs to
+fill in. Model/API keys go in the process environment (e.g. a k8s Secret).
 
 ## Run
 ```sh
-# protoc is required to build (brew install protobuf, or run inside the fork's `devenv shell`).
+# protoc required to build (brew install protobuf, or use the fork's `devenv shell`).
 cd examples/agent-grpc-backend
 
-cargo run --bin server          # listens on 127.0.0.1:50061 (override with ADDR=)
-cargo run --bin client          # in another shell: drives the RPCs
+cargo run --bin server                 # listens on 127.0.0.1:50061 (ADDR= to override)
+cargo run --bin client -- "do a task"  # in another shell; HARNESS=demo by default
+HARNESS=pi-mono cargo run --bin client -- "fix the bug"   # once pi-mono is configured
 
-REQUIRE_AUTH=1 cargo run --bin server   # enforce the Bearer-token interceptor
+REQUIRE_AUTH=1 cargo run --bin server  # enforce the Bearer-token interceptor (middleware)
 ```
 
-## RPC ↔ Warp mapping
-Each RPC mirrors an operation from `BACKEND_INTERFACE.md` §4:
-
-| gRPC RPC | Warp equivalent |
-|---|---|
-| `SpawnAgent` | `POST /api/v1/agent/run` |
-| `SendMessage` | `POST /api/v1/agent/messages` |
-| `ReadMessage` | `POST /api/v1/agent/messages/{id}/read` |
-| `ListMessages` | `GET /api/v1/agent/messages/{run_id}` |
-| `ReportEvent` | `POST /api/v1/agent/events/{run_id}` |
-| `StreamEvents` (server-streaming) | SSE `GET /api/v1/agent/events/stream` |
-| `Chat` (server-streaming) | *(model turn — no single REST equivalent)* |
-
-## Middleware
-`auth_interceptor` in `server.rs` is a tonic interceptor that runs on every request — the natural place for **auth, routing, rate-limiting, tenant resolution, or logging**. It checks `authorization: Bearer …` metadata and (with `REQUIRE_AUTH=1`) rejects requests without it. The client attaches a demo token via `with_auth(...)`.
+## Deploying on your cloud
+Build a container with the harness CLI(s) + this server, mount/POPULATE
+`harnesses.toml`, supply model API keys via env/secrets, and run it on your
+Docker/k8s host. The middleware interceptor is where you add real auth, tenant
+routing, rate-limiting, and audit logging.
 
 ## Bridging into Warp
-The Warp client doesn't speak gRPC, so connect this backend one of two ways (both noted in `BACKEND_INTERFACE.md`):
+The Warp client speaks GraphQL/REST/SSE, not gRPC, so connect this one of two ways
+(see `BACKEND_INTERFACE.md`):
+1. **In-process `AIClient` decorator (recommended)** — implement `AIClient`
+   (`app/src/server/server_api/ai.rs`) holding this crate's `AgentServiceClient`,
+   translating Warp's agent ops → these RPCs; inject at `ServerApi::get_ai_client()`.
+2. **Translation proxy** — speak Warp's REST/GraphQL/SSE on the front, these gRPC
+   calls on the back, and point the fork's [backend selector](../../OMW.md) at it.
 
-1. **In-process decorator (recommended).** Implement the `AIClient` trait (`app/src/server/server_api/ai.rs`) with a wrapper that holds an `AgentServiceClient` (this crate's generated client) and translates Warp agent calls → these RPCs. Inject it at `ServerApi::get_ai_client()`. Lets agent traffic use this backend while the rest of Warp stays on Warp's server.
-2. **Translation proxy.** Run a process that speaks Warp's REST/GraphQL/SSE on the front and these gRPC calls on the back, then point the fork's [backend selector](../../OMW.md) (`agent_backends.toml` / Settings → Features → "Default backend") at it.
+> Hardening notes for a real host: pass the prompt via env/stdin rather than arg
+> substitution (avoid shell injection), sandbox each run (container/cgroups), cap
+> concurrency, and clean up per-run workspaces.
 
-Generated Rust stubs (`AgentServiceClient`, message types) live under `warp_agent_grpc::pb` once built.
+Generated stubs live under `warp_agent_grpc::pb` once built.
