@@ -59,9 +59,23 @@ in
     # Use the nix-provided OpenSSL via pkg-config instead of compiling a vendored
     # copy.
     OPENSSL_NO_VENDOR = "1";
+  }
+  // lib.optionalAttrs pkgs.stdenv.isDarwin {
+    # macOS GUI builds compile Metal shaders with `xcrun metal`, but devenv's
+    # DEVELOPER_DIR points at the nix apple-sdk (which has no `metal`). Patch 0005
+    # makes warpui/build.rs apply this var to ONLY the metal step, leaving the rest
+    # of the build on the nix toolchain. Requires Apple's Metal Toolchain:
+    #   xcodebuild -downloadComponent MetalToolchain
+    # Adjust the path if Xcode is not at the default location.
+    WARP_METAL_DEVELOPER_DIR = "/Applications/Xcode.app/Contents/Developer";
   };
 
   enterShell = ''
     echo "oh-my-warp build env: $(rustc --version 2>/dev/null) | $(protoc --version 2>/dev/null)"
+    # Build with `./script/run --dont-open`, but LAUNCH the built app from
+    # Finder/launchd (e.g. the "WarpOss Dev" Desktop launcher) — NOT from this
+    # devenv shell. `open` from here leaks NIX_LDFLAGS/PKG_CONFIG_PATH into the
+    # app's child shells, which breaks zsh startup ("stale nix paths" / argument
+    # list too long).
   '';
 }
