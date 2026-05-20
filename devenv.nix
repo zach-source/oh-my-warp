@@ -43,6 +43,8 @@ in
       brotli
       cargo-about
       cargo-nextest
+      # `./script/macos/run` bundles the app into a .app via cargo-bundle.
+      cargo-bundle
     ]
     ++ lib.optionals stdenv.isDarwin [
       # `cc`/clang come from the darwin stdenv; libiconv is commonly needed when
