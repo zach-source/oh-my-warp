@@ -11,7 +11,9 @@ A **fork of `warpdotdev/warp`** maintained as **"oh-my-warp"** — an oh-my-zsh-
 
 ## THE GOLDEN RULE: never edit upstream files in place on `master`
 
-`master` = pristine upstream Warp **+** an additive overlay (`omw`, `OMW.md`, `CLAUDE.md`, `devenv.nix`/`devenv.yaml`, `patches/`). Every change to an *upstream* file lives as a patch in `patches/`, never as an in-place edit on `master`. This is what keeps upstream pulls conflict-free. `git diff upstream/master master -- app/ crates/` must stay empty.
+`master` = pristine upstream Warp **+** an additive overlay (`omw`, `OMW.md`, `CLAUDE.md`, `devenv.nix`/`devenv.yaml`, `patches/`). Every change to an *upstream* file lives as a patch in `patches/`, never as an in-place edit on `master`. This is what keeps upstream pulls conflict-free. **`git diff upstream/master master -- app/ crates/` must stay empty** (the guarantee is about *code*).
+
+The one deliberate exception is **`README.md`**: it carries an oh-my-warp banner prepended on `master` (upstream's README preserved verbatim below the divider) so the fork's GitHub page describes itself. It's a top insertion, so `omw sync` still merges upstream's README edits cleanly. Don't "restore" it to pristine.
 
 ## The oh-my-warp workflow (how to extend Warp)
 

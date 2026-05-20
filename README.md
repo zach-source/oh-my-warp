@@ -1,3 +1,40 @@
+# oh-my-warp
+
+> A fork of **[warpdotdev/warp](https://github.com/warpdotdev/warp)** maintained like *oh-my-zsh, but for Warp* — a curated, additive overlay of customizations on top of pristine upstream Warp, kept as a quilt-style **patch series** so the fork always stays mergeable with upstream.
+
+This is a customization layer, not a soft fork that drifts. Upstream code under `app/` and `crates/` stays byte-for-byte identical to `warpdotdev/warp`; every change lives as a patch in [`patches/`](patches/), applied on demand by the [`omw`](omw) tool. Pull new Warp releases anytime with `./omw sync`.
+
+### What's included
+- **tmux-style leader key** — press `ctrl-b`, then: `,` rename tab · `c` new tab · `&` close tab · `n`/`p` next/prev tab. The leader chords are configurable (named editable bindings, overridable in `keybindings.yaml`), and a `LEADER` indicator appears in the tab bar while a chord is pending.
+
+### Quick start (macOS)
+```bash
+git clone git@github.com:zach-source/warp.git && cd warp
+git remote add upstream https://github.com/warpdotdev/warp.git && git fetch upstream
+devenv shell                 # pinned Rust toolchain + build deps (upstream flake.nix is Linux-only)
+./omw apply                  # apply the patch series onto pristine upstream
+./script/run --dont-open     # build + bundle target/debug/bundle/osx/WarpOss.app
+# then launch the built app from Finder/launchd (not from the devenv shell)
+```
+
+A full macOS GUI build also needs Apple's Metal Toolchain (`xcodebuild -downloadComponent MetalToolchain`).
+
+### Docs
+- **[OMW.md](OMW.md)** — how the overlay works: the `omw` tool, the patch series, and syncing upstream.
+- **[CLAUDE.md](CLAUDE.md)** — engineering guide for this fork: workflow, macOS build/run, gotchas, and the keymap architecture the patches touch.
+- **[WARP.md](WARP.md)** — upstream Warp's own engineering guide.
+
+### Patch series ([`patches/series`](patches/series))
+1. tmux-style leader-key (`ctrl-b`) chords for tab management
+2. configurable leader keymap (named editable bindings)
+3. leader-engaged indicator in the tab bar
+4. free `ctrl-b` (unbind editor cursor-left) so the prefix can start
+5. compile Metal shaders under nix (`WARP_METAL_DEVELOPER_DIR`)
+
+---
+
+<sub><b>Upstream Warp's README follows.</b></sub>
+
 <a href="https://www.warp.dev">
     <img width="1024" alt="Warp Agentic Development Environment product preview" src="https://github.com/user-attachments/assets/9976b2da-2edd-4604-a36c-8fd53719c6d4" />
 </a>
