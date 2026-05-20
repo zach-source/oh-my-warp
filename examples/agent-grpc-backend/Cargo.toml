@@ -1,0 +1,33 @@
+# Standalone reference crate — NOT part of the warp Cargo workspace.
+# The empty [workspace] table makes cargo treat this directory as its own
+# workspace root, so the parent `warp` workspace ignores it entirely.
+[workspace]
+
+[package]
+name = "warp-agent-grpc"
+version = "0.1.0"
+edition = "2021"
+publish = false
+description = "Example gRPC agent backend — reference for custom Warp backends/middleware (see ../../BACKEND_INTERFACE.md)."
+
+[lib]
+path = "src/lib.rs"
+
+[[bin]]
+name = "server"
+path = "src/bin/server.rs"
+
+[[bin]]
+name = "client"
+path = "src/bin/client.rs"
+
+[dependencies]
+tonic = "0.12"
+prost = "0.13"
+tokio = { version = "1", features = ["macros", "rt-multi-thread", "time"] }
+tokio-stream = "0.1"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+[build-dependencies]
+tonic-build = "0.12"
