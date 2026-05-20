@@ -1,3 +1,5 @@
 # omw patch series — applied top-to-bottom by 'omw apply'.
 # One patch file (relative to patches/) per line; '#' lines are ignored.
 0001-Add-tmux-style-leader-key-ctrl-b-chords-for-tab-mana.patch
+0002-Make-leader-keymap-configurable-via-named-editable-b.patch
+0003-Show-a-leader-engaged-indicator-in-the-tab-bar-with-.patch
