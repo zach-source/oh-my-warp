@@ -3,3 +3,5 @@
 0001-Add-tmux-style-leader-key-ctrl-b-chords-for-tab-mana.patch
 0002-Make-leader-keymap-configurable-via-named-editable-b.patch
 0003-Show-a-leader-engaged-indicator-in-the-tab-bar-with-.patch
+0004-Free-ctrl-b-for-the-leader-by-unbinding-editor-curso.patch
+0005-Compile-Metal-shaders-under-nix-via-WARP_METAL_DEVEL.patch
