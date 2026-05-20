@@ -1,0 +1,11 @@
+# oh-my-warp dev environment inputs.
+# nixpkgs is pinned to nixos-unstable to match flake.nix; rust-overlay provides
+# the exact pinned toolchain from rust-toolchain.toml (1.92.0).
+inputs:
+  nixpkgs:
+    url: github:NixOS/nixpkgs/nixos-unstable
+  rust-overlay:
+    url: github:oxalica/rust-overlay
+    inputs:
+      nixpkgs:
+        follows: nixpkgs
