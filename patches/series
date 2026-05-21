@@ -10,3 +10,4 @@
 0008-Rebrand-the-OSS-app-bundle-as-oh-my-warp.patch
 0009-Add-in-process-gRPC-agent-bridge-oh-my-warp.patch
 0010-Add-gRPC-harness-dropdown-to-Settings-oh-my-warp.patch
+0011-Synthesize-ambient-task-state-for-host-owned-runs-oh.patch
