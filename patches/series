@@ -18,3 +18,4 @@
 0016-Fix-plugin-host-launch-flag-so-the-host-actually-sta.patch
 0017-Add-warp.commands-plugin-API-command-registry-oh-my-.patch
 0018-Surface-plugin-commands-in-the-command-palette-run-w.patch
+0019-Add-warp.terminal-command-lifecycle-events-oh-my-war.patch
