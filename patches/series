@@ -9,3 +9,4 @@
 0007-Add-Settings-dropdown-to-select-the-active-backend.patch
 0008-Rebrand-the-OSS-app-bundle-as-oh-my-warp.patch
 0009-Add-in-process-gRPC-agent-bridge-oh-my-warp.patch
+0010-Add-gRPC-harness-dropdown-to-Settings-oh-my-warp.patch
