@@ -48,6 +48,10 @@ Docker/k8s host. The middleware interceptor is where you add real auth, tenant
 routing, rate-limiting, and audit logging.
 
 ## Bridging into Warp
+> **Detailed design + drop-in scaffold:** [`BRIDGE_SPEC.md`](BRIDGE_SPEC.md) and
+> [`bridge/`](bridge/) — the `AIClient` decorator (all 41 trait methods), the
+> op→RPC field mappings, the SSE event-stream gap, deps/config/auth, and phasing.
+
 The Warp client speaks GraphQL/REST/SSE, not gRPC, so connect this one of two ways
 (see `BACKEND_INTERFACE.md`):
 1. **In-process `AIClient` decorator (recommended)** — implement `AIClient`
