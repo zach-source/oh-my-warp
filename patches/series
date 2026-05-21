@@ -11,3 +11,5 @@
 0009-Add-in-process-gRPC-agent-bridge-oh-my-warp.patch
 0010-Add-gRPC-harness-dropdown-to-Settings-oh-my-warp.patch
 0011-Synthesize-ambient-task-state-for-host-owned-runs-oh.patch
+0012-Disable-RudderStack-telemetry-egress-oh-my-warp.patch
+0013-Disable-Sentry-crash-reporting-egress-oh-my-warp.patch

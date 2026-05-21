@@ -1,0 +1,41 @@
+From e29141cf50d71a5ab8f9415e60b3b77e172bc6b3 Mon Sep 17 00:00:00 2001
+From: Zach Taylor <zctaylor.work@gmail.com>
+Date: Thu, 21 May 2026 08:38:00 -0400
+Subject: [PATCH 13/13] Disable Sentry crash-reporting egress (oh-my-warp)
+
+Force an empty DSN in sentry_client_options() so the Sentry Rust SDK and the
+minidump server initialize disabled and never transmit crash reports/errors.
+The crash_reporting feature is off in the default OSS build, so this is a
+defensive guard for builds that enable it. Note: native macOS cocoa_sentry
+(opt-in feature) still reads its DSN from ChannelState::sentry_url().
+---
+ app/src/crash_reporting/mod.rs | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/app/src/crash_reporting/mod.rs b/app/src/crash_reporting/mod.rs
+index dfb4cbc3..727aa7c3 100644
+--- a/app/src/crash_reporting/mod.rs
++++ b/app/src/crash_reporting/mod.rs
+@@ -10,7 +10,7 @@ use std::borrow::Cow;
+ use std::ops::DerefMut;
+ 
+ use lazy_static::lazy_static;
+-use sentry::{ClientInitGuard, IntoDsn, SessionMode};
++use sentry::{ClientInitGuard, SessionMode};
+ use warp_core::channel::Channel;
+ use warpui::{r#async::block_on, AppContext, SingletonEntity};
+ 
+@@ -398,9 +398,10 @@ fn init_sentry(user_id: Option<UserUid>, email: Option<String>, ctx: &mut AppCon
+ /// Baseline Sentry client options.
+ fn sentry_client_options() -> sentry::ClientOptions {
+     sentry::ClientOptions {
+-        dsn: ChannelState::sentry_url()
+-            .into_dsn()
+-            .expect("Invalid Sentry DSN"),
++        // oh-my-warp: observability stripped — force an empty DSN so the Sentry
++        // client (and the minidump server, which shares these options) initializes
++        // in a disabled state and never transmits crash reports.
++        dsn: None,
+ 
+         release: Some(release_version().into()),
+         environment: Some(get_environment()),
