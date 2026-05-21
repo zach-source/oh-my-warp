@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Claude Code — local web wrapper</title>
+<style>
+  :root {
+    --bg: #0f1115; --panel: #171a21; --line: #262b36; --fg: #e6e9ef;
+    --muted: #8b94a7; --accent: #c98a5e; --user: #1f2733; --tool: #1b2620;
+    --toolres: #14181f; --err: #3a1d1d; --result: #1d2a1f;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg);
+    font: 14px/1.55 ui-sans-serif, system-ui, -apple-system, sans-serif; height: 100vh;
+    display: flex; flex-direction: column; }
+  header { display: flex; align-items: center; gap: 12px; padding: 10px 16px;
+    border-bottom: 1px solid var(--line); background: var(--panel); }
+  header h1 { font-size: 14px; font-weight: 600; margin: 0; }
+  header .dot { color: var(--accent); }
+  header .sp { flex: 1; }
+  #session { color: var(--muted); font-size: 12px; font-family: ui-monospace, monospace; }
+  button { background: var(--accent); color: #1a120b; border: 0; border-radius: 6px;
+    padding: 8px 14px; font-weight: 600; cursor: pointer; }
+  button.ghost { background: transparent; color: var(--muted); border: 1px solid var(--line);
+    font-weight: 500; padding: 5px 10px; }
+  button:disabled { opacity: .5; cursor: default; }
+  #log { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+  .msg { padding: 9px 12px; border-radius: 8px; white-space: pre-wrap; word-break: break-word;
+    max-width: 860px; }
+  .msg .tag { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: .06em;
+    color: var(--muted); margin-bottom: 3px; }
+  .user { background: var(--user); align-self: flex-end; }
+  .assistant { background: var(--panel); }
+  .tool { background: var(--tool); font-family: ui-monospace, monospace; font-size: 13px; }
+  .tool_result { background: var(--toolres); color: var(--muted); font-family: ui-monospace, monospace;
+    font-size: 12px; max-height: 220px; overflow: auto; }
+  .result { background: var(--result); color: var(--muted); font-size: 12px; }
+  .stderr { color: #d39a9a; font-family: ui-monospace, monospace; font-size: 12px; }
+  .error { background: var(--err); color: #ffb3b3; }
+  .thinking { color: var(--muted); font-style: italic; }
+  form { display: flex; gap: 8px; padding: 12px 16px; border-top: 1px solid var(--line);
+    background: var(--panel); }
+  textarea { flex: 1; resize: none; height: 46px; background: var(--bg); color: var(--fg);
+    border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px; font: inherit; }
+  textarea:focus { outline: none; border-color: var(--accent); }
+</style>
+</head>
+<body>
+  <header>
+    <h1><span class="dot">●</span> Claude Code <span style="color:var(--muted);font-weight:400">— local web wrapper</span></h1>
+    <span class="sp"></span>
+    <span id="session">no session</span>
+    <button class="ghost" id="reset">New session</button>
+  </header>
+
+  <div id="log"></div>
+
+  <form id="form">
+    <textarea id="prompt" placeholder="Ask Claude Code to do something… (Enter to send, Shift+Enter for newline)" autofocus></textarea>
+    <button id="send" type="submit">Send</button>
+  </form>
+
+<script>
+  const log = document.getElementById('log');
+  const form = document.getElementById('form');
+  const promptEl = document.getElementById('prompt');
+  const sendBtn = document.getElementById('send');
+  const sessionEl = document.getElementById('session');
+  const resetBtn = document.getElementById('reset');
+
+  let session = null;
+  let es = null;
+  let thinkingEl = null;
+
+  const esc = (s) => String(s ?? '').replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+
+  function add(cls, tag, body) {
+    const div = document.createElement('div');
+    div.className = 'msg ' + cls;
+    div.innerHTML = (tag ? `<span class="tag">${esc(tag)}</span>` : '') + body;
+    log.appendChild(div);
+    log.scrollTop = log.scrollHeight;
+    return div;
+  }
+
+  function clearThinking() { if (thinkingEl) { thinkingEl.remove(); thinkingEl = null; } }
+
+  function setSession(id, model) {
+    if (!id) return;
+    session = id;
+    sessionEl.textContent = 'session ' + id.slice(0, 8) + (model ? ' · ' + model : '');
+  }
+
+  function finish() {
+    clearThinking();
+    if (es) { es.close(); es = null; }
+    sendBtn.disabled = false;
+    promptEl.focus();
+  }
+
+  function handle(ev) {
+    if (ev.kind !== 'session' && ev.kind !== 'stderr') clearThinking();
+    switch (ev.kind) {
+      case 'session': setSession(ev.session_id, ev.model); break;
+      case 'text': add('assistant', 'Claude', esc(ev.text)); break;
+      case 'tool_use':
+        add('tool', 'tool · ' + (ev.name || '?'),
+            esc(JSON.stringify(ev.input ?? {}, null, 0))); break;
+      case 'tool_result':
+        add('tool_result', 'result' + (ev.is_error ? ' · error' : ''), esc(ev.text)); break;
+      case 'result':
+        setSession(ev.session_id);
+        const cost = (typeof ev.cost_usd === 'number') ? ' · $' + ev.cost_usd.toFixed(4) : '';
+        const secs = (typeof ev.duration_ms === 'number') ? ' · ' + (ev.duration_ms/1000).toFixed(1) + 's' : '';
+        add('result', 'done', `${ev.num_turns ?? '?'} turns${cost}${secs}${ev.is_error ? ' · ERROR' : ''}`);
+        break;
+      case 'stderr': add('stderr', null, esc(ev.text)); break;
+      case 'error': add('error', 'error', esc(ev.text)); break;
+      case 'done': finish(); break;
+      case 'exit': break;
+    }
+  }
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const prompt = promptEl.value.trim();
+    if (!prompt || es) return;
+    add('user', 'you', esc(prompt));
+    promptEl.value = '';
+    sendBtn.disabled = true;
+    thinkingEl = add('thinking', null, 'thinking…');
+
+    const url = '/run?prompt=' + encodeURIComponent(prompt) +
+      (session ? '&session=' + encodeURIComponent(session) : '');
+    es = new EventSource(url);
+    es.onmessage = (m) => { try { handle(JSON.parse(m.data)); } catch (_) {} };
+    es.onerror = () => { finish(); };  // stream closed/errored → stop (no reconnect)
+  });
+
+  // Enter to send, Shift+Enter for newline.
+  promptEl.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); form.requestSubmit(); }
+  });
+
+  resetBtn.addEventListener('click', () => {
+    session = null;
+    sessionEl.textContent = 'no session';
+    log.innerHTML = '';
+    promptEl.focus();
+  });
+</script>
+</body>
+</html>
