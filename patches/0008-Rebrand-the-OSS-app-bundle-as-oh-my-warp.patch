@@ -1,4 +1,4 @@
-From e5ccc5e5dcdeba9436e24544445be12775f5056a Mon Sep 17 00:00:00 2001
+From 05545c5515c0ce22564161b0ff65d3cd9eac4fbf Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Wed, 20 May 2026 22:12:45 -0400
 Subject: [PATCH 08/22] Rebrand the OSS app bundle as oh-my-warp
@@ -16,10 +16,10 @@ so the rebrand stays purely cosmetic and doesn't ripple into warp_core.
  4 files changed, 7 insertions(+), 7 deletions(-)
 
 diff --git a/app/Cargo.toml b/app/Cargo.toml
-index 913bf9d5..09b1924e 100644
+index e5a85db8..f7ecc5d0 100644
 --- a/app/Cargo.toml
 +++ b/app/Cargo.toml
-@@ -966,7 +966,7 @@ git_credential_refresh = []
+@@ -972,7 +972,7 @@ git_credential_refresh = []
  category = "public.app-category.developer-tools"
  copyright = "© 2025, Denver Technologies, Inc"
  identifier = "dev.warp.WarpOss"
@@ -29,10 +29,10 @@ index 913bf9d5..09b1924e 100644
  icon = ["channels/oss/icon/no-padding/512x512.png", "channels/oss/icon/no-padding/icon.ico"]
  short_description = "The open-source, cloud-backed terminal for individuals and teams."
 diff --git a/app/src/bin/oss.rs b/app/src/bin/oss.rs
-index dfe54547..5378be80 100644
+index 0d07bae5..d17c67d2 100644
 --- a/app/src/bin/oss.rs
 +++ b/app/src/bin/oss.rs
-@@ -41,7 +41,7 @@ embed_plist::embed_info_plist_bytes!(r#"
+@@ -39,7 +39,7 @@ embed_plist::embed_info_plist_bytes!(r#"
      <key>CFBundleDevelopmentRegion</key>
      <string>English</string>
      <key>CFBundleDisplayName</key>
@@ -41,7 +41,7 @@ index dfe54547..5378be80 100644
      <key>CFBundleExecutable</key>
      <string>warp-oss</string>
      <key>CFBundleIdentifier</key>
-@@ -49,7 +49,7 @@ embed_plist::embed_info_plist_bytes!(r#"
+@@ -47,7 +47,7 @@ embed_plist::embed_info_plist_bytes!(r#"
      <key>CFBundleInfoDictionaryVersion</key>
      <string>6.0</string>
      <key>CFBundleName</key>

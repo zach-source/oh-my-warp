@@ -1,4 +1,4 @@
-From 21f4595b43b49a2d278b508c4209a0e4354be597 Mon Sep 17 00:00:00 2001
+From e1710598e2a541f4f04b4c090dcc7d45985f6cda Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Thu, 21 May 2026 11:37:28 -0400
 Subject: [PATCH 17/22] Add warp.commands plugin API + command registry
@@ -26,18 +26,18 @@ plugin_service_caller) to real consumers. See PLUGIN_SPEC.md (M1).
  create mode 100644 app/src/plugin/service/commands.rs
 
 diff --git a/app/src/plugin/app/mod.rs b/app/src/plugin/app/mod.rs
-index 5e855569..2fb4eb11 100644
+index 8253b8a8..6fb800eb 100644
 --- a/app/src/plugin/app/mod.rs
 +++ b/app/src/plugin/app/mod.rs
-@@ -7,7 +7,7 @@ use anyhow::{Context, Result};
+@@ -4,7 +4,7 @@ use std::sync::Arc;
+ 
+ use anyhow::{Context, Result};
+ use command::blocking::Command;
+-use service_impl::{LogServiceImpl, PluginHostBootstrapServiceImpl};
++use service_impl::{LogServiceImpl, PluginHostBootstrapServiceImpl, RegisterCommandServiceImpl};
  use warpui::{Entity, ModelContext, SingletonEntity};
  
  use super::{PLUGIN_HOST_ADDRESS_ENV_VAR, PLUGIN_HOST_FLAG};
--use service_impl::{LogServiceImpl, PluginHostBootstrapServiceImpl};
-+use service_impl::{LogServiceImpl, PluginHostBootstrapServiceImpl, RegisterCommandServiceImpl};
- 
- /// Singleton model responsible for spawning the plugin host child process and initializing IPC
- /// server and clients for communication between the app and plugin host processes.
 @@ -66,7 +66,8 @@ impl PluginHost {
  
          let server_builder = ipc::ServerBuilder::default()
@@ -247,10 +247,10 @@ index c1c1cd50..71182575 100644
  /// `console.err()`.
  pub fn console(ctx: Ctx<'_>) -> rquickjs::Result<Object<'_>> {
 diff --git a/app/src/plugin/host/native/plugin.rs b/app/src/plugin/host/native/plugin.rs
-index dd4d5d71..d2665b68 100644
+index 186766b2..2e100b11 100644
 --- a/app/src/plugin/host/native/plugin.rs
 +++ b/app/src/plugin/host/native/plugin.rs
-@@ -8,6 +8,8 @@ use anyhow::anyhow;
+@@ -6,6 +6,8 @@ use anyhow::anyhow;
  use rquickjs::Context;
  use warp_js::{JsFunctionId, JsFunctionRegistry, SerializedJsValue};
  
@@ -259,7 +259,7 @@ index dd4d5d71..d2665b68 100644
  cfg_if::cfg_if! {
      if #[cfg(feature = "completions_v2")] {
          use warp_completer::signatures::CommandSignature;
-@@ -45,14 +47,18 @@ impl PluginHandle {
+@@ -43,14 +45,18 @@ impl PluginHandle {
  
  /// Container struct for holding ipc `ServiceCaller` dependencies of `Plugin`.
  pub(super) struct AppServiceCallers {
@@ -279,7 +279,7 @@ index dd4d5d71..d2665b68 100644
              #[cfg(feature = "completions_v2")]
              register_command_signatures_caller: ipc::service_caller::<
                  RegisterCommandSignatureService,
-@@ -71,7 +77,6 @@ impl AppServiceCallers {
+@@ -69,7 +75,6 @@ impl AppServiceCallers {
  /// This ultimately the main backing data structure behind the JS plugin API exposed to plugins
  /// (see [`super::js_api`]).
  pub(super) struct Plugin {
@@ -287,7 +287,7 @@ index dd4d5d71..d2665b68 100644
      app_services: AppServiceCallers,
      js_function_registry: JsFunctionRegistry,
  }
-@@ -106,7 +111,24 @@ impl Plugin {
+@@ -104,7 +109,24 @@ impl Plugin {
          }
      }
  

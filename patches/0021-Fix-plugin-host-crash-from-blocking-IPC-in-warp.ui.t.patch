@@ -1,4 +1,4 @@
-From 2821de2e2cbdac0e5b35a9164738a80650c0b118 Mon Sep 17 00:00:00 2001
+From 2f78deed9bb8c736c9892d27917c1c84aa421ee1 Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Thu, 21 May 2026 16:42:15 -0400
 Subject: [PATCH 21/22] Fix plugin host crash from blocking IPC in
@@ -145,7 +145,7 @@ index d955a2d0..91ef8a34 100644
      Ok(keymap)
  }
 diff --git a/app/src/plugin/host/native/mod.rs b/app/src/plugin/host/native/mod.rs
-index 8d11181e..58176266 100644
+index bc293db2..0c260e1b 100644
 --- a/app/src/plugin/host/native/mod.rs
 +++ b/app/src/plugin/host/native/mod.rs
 @@ -1,3 +1,4 @@
@@ -153,7 +153,7 @@ index 8d11181e..58176266 100644
  mod js_api;
  mod logging;
  mod plugin;
-@@ -48,6 +49,10 @@ pub fn run() -> Result<()> {
+@@ -43,6 +44,10 @@ pub fn run() -> Result<()> {
          // process via `LogService`.
          initialize_logging(&client, &executor);
  
@@ -165,10 +165,10 @@ index 8d11181e..58176266 100644
          let (plugin_request_tx, plugin_request_rx) = async_channel::unbounded();
          let mut plugin_runners =
 diff --git a/app/src/plugin/host/native/plugin.rs b/app/src/plugin/host/native/plugin.rs
-index cebea28b..a196c713 100644
+index a89bc590..6fc3474d 100644
 --- a/app/src/plugin/host/native/plugin.rs
 +++ b/app/src/plugin/host/native/plugin.rs
-@@ -8,10 +8,9 @@ use anyhow::anyhow;
+@@ -6,10 +6,9 @@ use anyhow::anyhow;
  use rquickjs::Context;
  use warp_js::{JsFunctionId, JsFunctionRegistry, SerializedJsValue};
  
@@ -181,7 +181,7 @@ index cebea28b..a196c713 100644
  };
  
  cfg_if::cfg_if! {
-@@ -53,7 +52,6 @@ impl PluginHandle {
+@@ -51,7 +50,6 @@ impl PluginHandle {
  pub(super) struct AppServiceCallers {
      register_command_caller: Box<dyn ipc::ServiceCaller<RegisterCommandService>>,
      register_event_handler_caller: Box<dyn ipc::ServiceCaller<RegisterEventHandlerService>>,
@@ -189,7 +189,7 @@ index cebea28b..a196c713 100644
      #[cfg(feature = "completions_v2")]
      register_command_signatures_caller:
          Box<dyn ipc::ServiceCaller<RegisterCommandSignatureService>>,
-@@ -68,7 +66,6 @@ impl AppServiceCallers {
+@@ -66,7 +64,6 @@ impl AppServiceCallers {
              register_event_handler_caller: ipc::service_caller::<RegisterEventHandlerService>(
                  app_client.clone(),
              ),
@@ -197,7 +197,7 @@ index cebea28b..a196c713 100644
              #[cfg(feature = "completions_v2")]
              register_command_signatures_caller: ipc::service_caller::<
                  RegisterCommandSignatureService,
-@@ -150,18 +147,6 @@ impl Plugin {
+@@ -148,18 +145,6 @@ impl Plugin {
          }
      }
  

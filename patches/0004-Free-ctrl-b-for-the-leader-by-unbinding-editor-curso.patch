@@ -1,4 +1,4 @@
-From eaea64a5be846cb0b5d8fcf4cd8b706d934a1cb1 Mon Sep 17 00:00:00 2001
+From fc4bbeb3f2e3c5a0f7724634aeffdf46f68f0caf Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Wed, 20 May 2026 12:29:16 -0400
 Subject: [PATCH 04/22] Free ctrl-b for the leader by unbinding editor
@@ -14,10 +14,10 @@ start; the Left arrow still moves the cursor.
  1 file changed, 6 insertions(+), 2 deletions(-)
 
 diff --git a/app/src/editor/view/mod.rs b/app/src/editor/view/mod.rs
-index 489f93d9..f6543b32 100644
+index 81c8cb1d..2e0d42bd 100644
 --- a/app/src/editor/view/mod.rs
 +++ b/app/src/editor/view/mod.rs
-@@ -629,9 +629,13 @@ pub fn init(ctx: &mut AppContext) {
+@@ -621,9 +621,13 @@ pub fn init(ctx: &mut AppContext) {
          EditableBinding::new("editor_view:down", "Move cursor down", EditorAction::Down)
              .with_context_predicate(id!("EditorView") & !id!("IMEOpen"))
              .with_key_binding("ctrl-n"),

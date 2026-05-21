@@ -1,4 +1,4 @@
-From 2ae2c833d392c8ed9dc5ab29c47a749dc17308db Mon Sep 17 00:00:00 2001
+From 758d1aca47b64a55ee844c8b3a50e941254b7e75 Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Thu, 21 May 2026 10:19:01 -0400
 Subject: [PATCH 14/22] Enable the JavaScript plugin host in the default build
@@ -21,10 +21,10 @@ Phase 1. See PLUGIN_SPEC.md.
  4 files changed, 11 insertions(+)
 
 diff --git a/app/Cargo.toml b/app/Cargo.toml
-index 2141e3e5..be2a22e5 100644
+index e2f163cb..d904434f 100644
 --- a/app/Cargo.toml
 +++ b/app/Cargo.toml
-@@ -467,6 +467,8 @@ creating_shared_sessions = []
+@@ -468,6 +468,8 @@ creating_shared_sessions = []
  cross_repo_context = []
  codebase_index_persistence = ["full_source_code_embedding"]
  default = [
@@ -33,7 +33,7 @@ index 2141e3e5..be2a22e5 100644
      "agent_mode",
      "viewing_shared_sessions",
      "render_continuous_block_selections_with_single_border",
-@@ -760,6 +762,10 @@ read_image_files = []
+@@ -764,6 +766,10 @@ read_image_files = []
  # directly, rather than via the `FeatureFlag` enum, because its value is
  # required early in the app lifecycle prior to `FeatureFlag` initialization.
  plugin_host = ["dep:rquickjs", "dep:warp_js", "warp_cli/plugin_host"]
@@ -45,7 +45,7 @@ index 2141e3e5..be2a22e5 100644
  # generated profile will be written to profile.pb in the current directory.
  # NOTE: This may slow down program execution.
 diff --git a/app/src/plugin/app/mod.rs b/app/src/plugin/app/mod.rs
-index 1114548a..5e855569 100644
+index ef97b7cb..8253b8a8 100644
 --- a/app/src/plugin/app/mod.rs
 +++ b/app/src/plugin/app/mod.rs
 @@ -109,6 +109,7 @@ impl PluginHost {
@@ -57,10 +57,10 @@ index 1114548a..5e855569 100644
          self.host_client.clone().map(ipc::service_caller::<S>)
      }
 diff --git a/app/src/plugin/host/native/plugin.rs b/app/src/plugin/host/native/plugin.rs
-index 1a3023a6..dd4d5d71 100644
+index 8809633f..186766b2 100644
 --- a/app/src/plugin/host/native/plugin.rs
 +++ b/app/src/plugin/host/native/plugin.rs
-@@ -71,6 +71,7 @@ impl AppServiceCallers {
+@@ -69,6 +69,7 @@ impl AppServiceCallers {
  /// This ultimately the main backing data structure behind the JS plugin API exposed to plugins
  /// (see [`super::js_api`]).
  pub(super) struct Plugin {
@@ -68,7 +68,7 @@ index 1a3023a6..dd4d5d71 100644
      app_services: AppServiceCallers,
      js_function_registry: JsFunctionRegistry,
  }
-@@ -105,6 +106,7 @@ impl Plugin {
+@@ -103,6 +104,7 @@ impl Plugin {
          }
      }
  
@@ -77,10 +77,10 @@ index 1a3023a6..dd4d5d71 100644
          &mut self.js_function_registry
      }
 diff --git a/app/src/plugin/host/native/plugin_ref.rs b/app/src/plugin/host/native/plugin_ref.rs
-index 58de9be4..5ad63381 100644
+index d8e90fa9..c940f58d 100644
 --- a/app/src/plugin/host/native/plugin_ref.rs
 +++ b/app/src/plugin/host/native/plugin_ref.rs
-@@ -15,6 +15,7 @@ pub(super) enum PluginLoadError {
+@@ -16,6 +16,7 @@ pub(super) enum PluginLoadError {
  /// default (e.g. Completions/Command Signatures)
  #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
  pub(super) enum BuiltInPluginType {
@@ -88,7 +88,7 @@ index 58de9be4..5ad63381 100644
      Completions,
  }
  
-@@ -42,6 +43,7 @@ pub(super) enum PluginRef {
+@@ -43,6 +44,7 @@ pub(super) enum PluginRef {
      Path(PathBuf),
  
      /// Refers to a "built-in" plugin bundled with the Warp binary.

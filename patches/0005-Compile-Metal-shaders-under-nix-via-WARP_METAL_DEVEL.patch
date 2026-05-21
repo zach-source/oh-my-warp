@@ -1,4 +1,4 @@
-From d8c9e09cdbd42ee4023c153e10049dfac6437fe4 Mon Sep 17 00:00:00 2001
+From e9a3ab522816a5984756c33f7779f2b8bc3a5a8e Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Wed, 20 May 2026 12:29:17 -0400
 Subject: [PATCH 05/22] Compile Metal shaders under nix via
@@ -13,10 +13,10 @@ compile uses the system Xcode while the rest of the build stays on nix.
  1 file changed, 14 insertions(+)
 
 diff --git a/crates/warpui/build.rs b/crates/warpui/build.rs
-index eda5d8f6..10e9f7c6 100644
+index d6137155..5f2c04f5 100644
 --- a/crates/warpui/build.rs
 +++ b/crates/warpui/build.rs
-@@ -86,6 +86,15 @@ fn compile_metal_shaders() {
+@@ -88,6 +88,15 @@ fn compile_metal_shaders() {
          compile_args.push("-gline-tables-only");
      }
      let result = Command::new("xcrun")
@@ -32,7 +32,7 @@ index eda5d8f6..10e9f7c6 100644
          .args(&compile_args)
          .output()
          .expect("error compiling metal shaders to .air");
-@@ -96,6 +105,11 @@ fn compile_metal_shaders() {
+@@ -98,6 +107,11 @@ fn compile_metal_shaders() {
      );
  
      let result = Command::new("xcrun")

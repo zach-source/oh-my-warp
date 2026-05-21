@@ -1,4 +1,4 @@
-From 53de8e2bce0cef9384718a0098fcd2ad2b34d79e Mon Sep 17 00:00:00 2001
+From d9712fbe48e20fa7d58d144defb766c0f79981df Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Thu, 21 May 2026 11:37:28 -0400
 Subject: [PATCH 18/22] Surface plugin commands in the command palette + run
@@ -17,19 +17,19 @@ and shows the returned string as an ephemeral toast. See PLUGIN_SPEC.md (M1).
  create mode 100644 app/src/search/command_palette/plugin_command_data_source.rs
 
 diff --git a/app/src/search/command_palette/data_sources.rs b/app/src/search/command_palette/data_sources.rs
-index b457cfd6..28f31e63 100644
+index 04fb981f..19b3fb73 100644
 --- a/app/src/search/command_palette/data_sources.rs
 +++ b/app/src/search/command_palette/data_sources.rs
-@@ -8,6 +8,8 @@ use crate::search::command_palette::files;
- use crate::search::command_palette::launch_config;
+@@ -12,6 +12,8 @@ use crate::search::action::CommandBindingDataSource;
+ use crate::search::binding_source::BindingSource;
  use crate::search::command_palette::mixer::{CommandPaletteItemAction, ItemSummary};
  use crate::search::command_palette::new_session::NewSessionDataSource;
 +#[cfg(feature = "plugin_host")]
 +use crate::search::command_palette::plugin_command_data_source::PluginCommandDataSource;
  use crate::search::command_palette::repos::RepoDataSource;
- use crate::search::command_palette::{navigation, tabs, CommandPaletteMixer};
+ use crate::search::command_palette::{files, launch_config, navigation, tabs, CommandPaletteMixer};
  use crate::search::data_source::QueryResult;
-@@ -34,6 +36,8 @@ pub struct DataSourceStore {
+@@ -31,6 +33,8 @@ pub struct DataSourceStore {
      all_conversation_data_source: ModelHandle<conversations::DataSource>,
      repo_data_source: ModelHandle<RepoDataSource>,
      tabs_data_source: Option<ModelHandle<tabs::DataSource>>,
@@ -38,7 +38,7 @@ index b457cfd6..28f31e63 100644
  }
  
  impl DataSourceStore {
-@@ -61,6 +65,9 @@ impl DataSourceStore {
+@@ -58,6 +62,9 @@ impl DataSourceStore {
  
          let repo_data_source = ctx.add_model(|_| RepoDataSource::new());
  
@@ -48,7 +48,7 @@ index b457cfd6..28f31e63 100644
          Self {
              actions_data_source,
              sessions_data_source,
-@@ -70,6 +77,8 @@ impl DataSourceStore {
+@@ -67,6 +74,8 @@ impl DataSourceStore {
              all_conversation_data_source,
              repo_data_source,
              tabs_data_source: None,
@@ -57,7 +57,7 @@ index b457cfd6..28f31e63 100644
          }
      }
  
-@@ -116,6 +125,12 @@ impl DataSourceStore {
+@@ -113,6 +122,12 @@ impl DataSourceStore {
                  HashSet::from([QueryFilter::Actions]),
              );
  
@@ -146,10 +146,10 @@ index 00000000..840a20c0
 +    }
 +}
 diff --git a/app/src/search/command_palette/view.rs b/app/src/search/command_palette/view.rs
-index 5858330b..cfe3a060 100644
+index 753756c2..8410fae5 100644
 --- a/app/src/search/command_palette/view.rs
 +++ b/app/src/search/command_palette/view.rs
-@@ -720,6 +720,69 @@ impl View {
+@@ -713,6 +713,69 @@ impl View {
      }
  
      /// Handles the `CommandPaletteItemAction` action and closes the search panel.
@@ -219,7 +219,7 @@ index 5858330b..cfe3a060 100644
      fn handle_result_accepted(
          &mut self,
          result_action: CommandPaletteItemAction,
-@@ -786,6 +849,15 @@ impl View {
+@@ -779,6 +842,15 @@ impl View {
  
          match result_action.clone() {
              CommandPaletteItemAction::AcceptBinding { binding } => {

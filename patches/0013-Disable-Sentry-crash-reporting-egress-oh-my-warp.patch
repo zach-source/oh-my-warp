@@ -1,4 +1,4 @@
-From 5021faa225f88de9930e3c91e4f60dbd9150a330 Mon Sep 17 00:00:00 2001
+From 4c065d69b82a690b77a92d7047223b47307ff5d8 Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Thu, 21 May 2026 08:38:00 -0400
 Subject: [PATCH 13/22] Disable Sentry crash-reporting egress (oh-my-warp)
@@ -13,18 +13,18 @@ defensive guard for builds that enable it. Note: native macOS cocoa_sentry
  1 file changed, 5 insertions(+), 4 deletions(-)
 
 diff --git a/app/src/crash_reporting/mod.rs b/app/src/crash_reporting/mod.rs
-index dfb4cbc3..727aa7c3 100644
+index b71028da..ede6fd20 100644
 --- a/app/src/crash_reporting/mod.rs
 +++ b/app/src/crash_reporting/mod.rs
-@@ -10,7 +10,7 @@ use std::borrow::Cow;
- use std::ops::DerefMut;
- 
+@@ -14,7 +14,7 @@ use std::sync::Arc;
  use lazy_static::lazy_static;
+ use parking_lot::{Mutex, RwLock};
+ use regex::Regex;
 -use sentry::{ClientInitGuard, IntoDsn, SessionMode};
 +use sentry::{ClientInitGuard, SessionMode};
+ #[cfg(linux_or_windows)]
+ pub use sentry_minidump::run_server as run_minidump_server;
  use warp_core::channel::Channel;
- use warpui::{r#async::block_on, AppContext, SingletonEntity};
- 
 @@ -398,9 +398,10 @@ fn init_sentry(user_id: Option<UserUid>, email: Option<String>, ctx: &mut AppCon
  /// Baseline Sentry client options.
  fn sentry_client_options() -> sentry::ClientOptions {

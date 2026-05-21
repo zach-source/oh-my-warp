@@ -1,4 +1,4 @@
-From 09af1f337d3a5c68010239d9a87fab99a686f3bf Mon Sep 17 00:00:00 2001
+From ba0c90f619a1ef7c7864ca98e50d7684f7d1b9f7 Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Wed, 20 May 2026 11:51:24 -0400
 Subject: [PATCH 02/22] Make leader keymap configurable via named editable
@@ -20,10 +20,10 @@ command palette / shortcuts UI. Default leader stays ctrl-b.
  3 files changed, 80 insertions(+), 30 deletions(-)
 
 diff --git a/app/src/search/action/search_item.rs b/app/src/search/action/search_item.rs
-index 55be013f..f8603dc5 100644
+index 69e5a13a..ace905cb 100644
 --- a/app/src/search/action/search_item.rs
 +++ b/app/src/search/action/search_item.rs
-@@ -197,6 +197,7 @@ impl SearchItemIcon for BindingGroup {
+@@ -199,6 +199,7 @@ impl SearchItemIcon for BindingGroup {
              Self::Notifications => Icon::Bell,
              Self::EnvVarCollection => Icon::EnvVarCollection,
              Self::Terminal => Icon::Terminal,
@@ -31,7 +31,7 @@ index 55be013f..f8603dc5 100644
          }
      }
  
-@@ -209,6 +210,7 @@ impl SearchItemIcon for BindingGroup {
+@@ -211,6 +212,7 @@ impl SearchItemIcon for BindingGroup {
              | Self::AutoUpdate
              | Self::Folders
              | Self::Terminal
@@ -40,10 +40,10 @@ index 55be013f..f8603dc5 100644
              Self::WarpAi if !FeatureFlag::AgentMode.is_enabled() => {
                  ColorU::from_u32(colors::WARP_AI)
 diff --git a/app/src/util/bindings.rs b/app/src/util/bindings.rs
-index c6a6ed99..eba8aba3 100644
+index 349f075f..9e565312 100644
 --- a/app/src/util/bindings.rs
 +++ b/app/src/util/bindings.rs
-@@ -816,6 +816,8 @@ pub enum BindingGroup {
+@@ -811,6 +811,8 @@ pub enum BindingGroup {
      Notifications,
      EnvVarCollection,
      Terminal,
@@ -52,7 +52,7 @@ index c6a6ed99..eba8aba3 100644
  }
  
  impl BindingGroup {
-@@ -834,6 +836,7 @@ impl BindingGroup {
+@@ -829,6 +831,7 @@ impl BindingGroup {
              Self::Notifications => "notifications",
              Self::EnvVarCollection => "env_var_collections",
              Self::Terminal => "terminal",

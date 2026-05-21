@@ -1,4 +1,4 @@
-From 47d18f85f3be83d7008db1c2fddeb6197ba6094c Mon Sep 17 00:00:00 2001
+From 5a613fbe4a99238cc2ad8d6f6c6c7e2c7e997169 Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Thu, 21 May 2026 16:51:24 -0400
 Subject: [PATCH 22/22] Make plugin command return value optional (fix 'oneshot
@@ -64,10 +64,10 @@ index 91ef8a34..7ba953bc 100644
              }),
          ),
 diff --git a/app/src/search/command_palette/view.rs b/app/src/search/command_palette/view.rs
-index cfe3a060..93e2a885 100644
+index 8410fae5..9779328f 100644
 --- a/app/src/search/command_palette/view.rs
 +++ b/app/src/search/command_palette/view.rs
-@@ -759,8 +759,10 @@ impl View {
+@@ -752,8 +752,10 @@ impl View {
              move |_view, response, ctx| {
                  let toast = match response {
                      Ok(CallJsFunctionResponse::Success(output)) => {

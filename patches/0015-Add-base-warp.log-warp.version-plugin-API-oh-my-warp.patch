@@ -1,4 +1,4 @@
-From e8ef5c6dec500c5ffe7f9a5d6bc816d78684922f Mon Sep 17 00:00:00 2001
+From 39ae19961a5cb5643c3f29da1df4ebacaf30be4c Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Thu, 21 May 2026 10:19:05 -0400
 Subject: [PATCH 15/22] Add base warp.log/warp.version plugin API (oh-my-warp)

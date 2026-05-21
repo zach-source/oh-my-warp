@@ -1,4 +1,4 @@
-From 531d0ec9ab007ad522532d1bbae6a69390a54cf6 Mon Sep 17 00:00:00 2001
+From 9293cd1619e1558289a9e04115194c9cb8f787ab Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Thu, 21 May 2026 11:56:44 -0400
 Subject: [PATCH 19/22] Add warp.terminal command-lifecycle events (oh-my-warp)
@@ -30,21 +30,21 @@ shown at the ctx-rich fire site — no host→app hop). See PLUGIN_SPEC.md (M2).
  create mode 100644 app/src/plugin/service/events.rs
 
 diff --git a/app/src/plugin/app/mod.rs b/app/src/plugin/app/mod.rs
-index 2fb4eb11..fa7b7250 100644
+index 6fb800eb..eb46f0dd 100644
 --- a/app/src/plugin/app/mod.rs
 +++ b/app/src/plugin/app/mod.rs
-@@ -7,7 +7,10 @@ use anyhow::{Context, Result};
- use warpui::{Entity, ModelContext, SingletonEntity};
+@@ -4,7 +4,10 @@ use std::sync::Arc;
  
- use super::{PLUGIN_HOST_ADDRESS_ENV_VAR, PLUGIN_HOST_FLAG};
+ use anyhow::{Context, Result};
+ use command::blocking::Command;
 -use service_impl::{LogServiceImpl, PluginHostBootstrapServiceImpl, RegisterCommandServiceImpl};
 +use service_impl::{
 +    LogServiceImpl, PluginHostBootstrapServiceImpl, RegisterCommandServiceImpl,
 +    RegisterEventHandlerServiceImpl,
 +};
+ use warpui::{Entity, ModelContext, SingletonEntity};
  
- /// Singleton model responsible for spawning the plugin host child process and initializing IPC
- /// server and clients for communication between the app and plugin host processes.
+ use super::{PLUGIN_HOST_ADDRESS_ENV_VAR, PLUGIN_HOST_FLAG};
 @@ -67,7 +70,8 @@ impl PluginHost {
          let server_builder = ipc::ServerBuilder::default()
              .with_service(plugin_host_bootstrap_service)
@@ -301,10 +301,10 @@ index 71182575..ef043239 100644
  ///
  /// API methods:
 diff --git a/app/src/plugin/host/native/plugin.rs b/app/src/plugin/host/native/plugin.rs
-index d2665b68..a196c713 100644
+index 2e100b11..6fc3474d 100644
 --- a/app/src/plugin/host/native/plugin.rs
 +++ b/app/src/plugin/host/native/plugin.rs
-@@ -8,7 +8,10 @@ use anyhow::anyhow;
+@@ -6,7 +6,10 @@ use anyhow::anyhow;
  use rquickjs::Context;
  use warp_js::{JsFunctionId, JsFunctionRegistry, SerializedJsValue};
  
@@ -316,7 +316,7 @@ index d2665b68..a196c713 100644
  
  cfg_if::cfg_if! {
      if #[cfg(feature = "completions_v2")] {
-@@ -48,6 +51,7 @@ impl PluginHandle {
+@@ -46,6 +49,7 @@ impl PluginHandle {
  /// Container struct for holding ipc `ServiceCaller` dependencies of `Plugin`.
  pub(super) struct AppServiceCallers {
      register_command_caller: Box<dyn ipc::ServiceCaller<RegisterCommandService>>,
@@ -324,7 +324,7 @@ index d2665b68..a196c713 100644
      #[cfg(feature = "completions_v2")]
      register_command_signatures_caller:
          Box<dyn ipc::ServiceCaller<RegisterCommandSignatureService>>,
-@@ -59,6 +63,9 @@ impl AppServiceCallers {
+@@ -57,6 +61,9 @@ impl AppServiceCallers {
              register_command_caller: ipc::service_caller::<RegisterCommandService>(
                  app_client.clone(),
              ),
@@ -334,7 +334,7 @@ index d2665b68..a196c713 100644
              #[cfg(feature = "completions_v2")]
              register_command_signatures_caller: ipc::service_caller::<
                  RegisterCommandSignatureService,
-@@ -129,6 +136,17 @@ impl Plugin {
+@@ -127,6 +134,17 @@ impl Plugin {
          }
      }
  
@@ -416,10 +416,10 @@ index 76db3940..9ee43c5c 100644
  pub use logging::*;
  pub use plugin_host_bootstrap::*;
 diff --git a/app/src/terminal/view.rs b/app/src/terminal/view.rs
-index 2949dc43..0aa891b7 100644
+index 1629767f..1cd21db7 100644
 --- a/app/src/terminal/view.rs
 +++ b/app/src/terminal/view.rs
-@@ -11079,6 +11079,21 @@ impl TerminalView {
+@@ -11030,6 +11030,21 @@ impl TerminalView {
                  }
                  self.did_notify_long_running = false;
  
@@ -441,7 +441,7 @@ index 2949dc43..0aa891b7 100644
                  // Snapshot the prompt state as of when the command began executing.
                  // Commands may themselves affect the prompt (if running `git checkout`), for
                  // example, so we want the saved prompt state to match what the user saw when
-@@ -11442,6 +11457,30 @@ impl TerminalView {
+@@ -11393,6 +11408,30 @@ impl TerminalView {
                  }
  
                  if let BlockType::User(block_completed) = block_type {
@@ -472,7 +472,7 @@ index 2949dc43..0aa891b7 100644
                      if let Some(block_duration) =
                          self.block_duration(&block_completed.serialized_block)
                      {
-@@ -15125,6 +15164,65 @@ impl TerminalView {
+@@ -15076,6 +15115,65 @@ impl TerminalView {
          }
      }
  

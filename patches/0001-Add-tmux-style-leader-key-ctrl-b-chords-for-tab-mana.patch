@@ -1,4 +1,4 @@
-From 0114b91789880a7d328f133d3b4be1400c61d294 Mon Sep 17 00:00:00 2001
+From 559d0a6962393b58b67eeccc8b7da5c503e8be51 Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Wed, 20 May 2026 11:05:27 -0400
 Subject: [PATCH 01/22] Add tmux-style leader-key (ctrl-b) chords for tab
@@ -29,10 +29,10 @@ Not yet compiled locally (repo pins Rust 1.92.0 via nix devshell); verify with
  create mode 100644 app/src/util/leader.rs
 
 diff --git a/app/src/util/bindings.rs b/app/src/util/bindings.rs
-index acef9f9b..c6a6ed99 100644
+index 54c7679a..349f075f 100644
 --- a/app/src/util/bindings.rs
 +++ b/app/src/util/bindings.rs
-@@ -218,7 +218,11 @@ lazy_static! {
+@@ -213,7 +213,11 @@ lazy_static! {
          // on TerminalView on all platforms.
          Keystroke::parse("ctrl-c").expect("should be able to construct ctrl-c keystroke"),
          // The resume conversation binding uses cmd-shift-R on Mac and should be allowed
@@ -113,7 +113,7 @@ index 00000000..13e18021
 +    app.register_fixed_bindings(bindings);
 +}
 diff --git a/app/src/util/mod.rs b/app/src/util/mod.rs
-index 80953d57..9dbdd095 100644
+index 5f5f1281..338a6274 100644
 --- a/app/src/util/mod.rs
 +++ b/app/src/util/mod.rs
 @@ -6,6 +6,7 @@ pub mod extensions;
@@ -125,10 +125,10 @@ index 80953d57..9dbdd095 100644
  pub mod links;
  pub mod openable_file_type;
 diff --git a/app/src/workspace/mod.rs b/app/src/workspace/mod.rs
-index 180a2872..8809b95b 100644
+index 9c203eb0..49c43176 100644
 --- a/app/src/workspace/mod.rs
 +++ b/app/src/workspace/mod.rs
-@@ -106,6 +106,10 @@ pub fn init(app: &mut AppContext) {
+@@ -97,6 +97,10 @@ pub fn init(app: &mut AppContext) {
      use warpui::keymap::macros::*;
      app.register_binding_validator::<Workspace>(is_binding_pty_compliant);
  

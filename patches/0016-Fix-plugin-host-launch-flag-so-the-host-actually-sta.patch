@@ -1,4 +1,4 @@
-From 110c61b08e16287cec555af64a1077005b102150 Mon Sep 17 00:00:00 2001
+From 333cc5e9162d32f55bc08cfa27bfb447c8d974ff Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Thu, 21 May 2026 10:57:51 -0400
 Subject: [PATCH 16/22] Fix plugin host launch flag so the host actually starts

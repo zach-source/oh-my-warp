@@ -1,4 +1,4 @@
-From ab0c938891479379b2801f3b685f536c74464e65 Mon Sep 17 00:00:00 2001
+From b47ef3cb31fad5d665261df43779f92a1a7dc6dd Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Thu, 21 May 2026 13:31:39 -0400
 Subject: [PATCH 20/22] Add warp.ui.toast + warp.keymap.bind (oh-my-warp)
@@ -29,16 +29,18 @@ plugin command (shared commands::run_plugin_command). See PLUGIN_SPEC.md (M3).
  create mode 100644 app/src/plugin/service/app_requests.rs
 
 diff --git a/app/src/plugin/app/mod.rs b/app/src/plugin/app/mod.rs
-index fa7b7250..b149de07 100644
+index eb46f0dd..19ca06ad 100644
 --- a/app/src/plugin/app/mod.rs
 +++ b/app/src/plugin/app/mod.rs
-@@ -7,10 +7,14 @@ use anyhow::{Context, Result};
- use warpui::{Entity, ModelContext, SingletonEntity};
+@@ -2,12 +2,16 @@ mod service_impl;
  
- use super::{PLUGIN_HOST_ADDRESS_ENV_VAR, PLUGIN_HOST_FLAG};
+ use std::sync::Arc;
+ 
 +use crate::plugin::app_requests::{PluginAppRequest, ToastKind};
 +use crate::view_components::{DismissibleToast, ToastFlavor};
 +use crate::workspace::{ToastStack, WorkspaceAction};
+ use anyhow::{Context, Result};
+ use command::blocking::Command;
  use service_impl::{
 -    LogServiceImpl, PluginHostBootstrapServiceImpl, RegisterCommandServiceImpl,
 -    RegisterEventHandlerServiceImpl,
@@ -46,9 +48,9 @@ index fa7b7250..b149de07 100644
 +    RegisterCommandServiceImpl, RegisterEventHandlerServiceImpl,
  };
 +use warpui::keymap::EditableBinding;
+ use warpui::{Entity, ModelContext, SingletonEntity};
  
- /// Singleton model responsible for spawning the plugin host child process and initializing IPC
- /// server and clients for communication between the app and plugin host processes.
+ use super::{PLUGIN_HOST_ADDRESS_ENV_VAR, PLUGIN_HOST_FLAG};
 @@ -39,6 +43,15 @@ impl PluginHost {
          let plugin_host_bootstrap_service = PluginHostBootstrapServiceImpl::new();
          let connection_address_rx = plugin_host_bootstrap_service.connection_address_rx();
@@ -374,10 +376,10 @@ index ef043239..d955a2d0 100644
  ///
  /// API methods:
 diff --git a/app/src/plugin/host/native/plugin.rs b/app/src/plugin/host/native/plugin.rs
-index a196c713..cebea28b 100644
+index 6fc3474d..a89bc590 100644
 --- a/app/src/plugin/host/native/plugin.rs
 +++ b/app/src/plugin/host/native/plugin.rs
-@@ -8,9 +8,10 @@ use anyhow::anyhow;
+@@ -6,9 +6,10 @@ use anyhow::anyhow;
  use rquickjs::Context;
  use warp_js::{JsFunctionId, JsFunctionRegistry, SerializedJsValue};
  
@@ -390,7 +392,7 @@ index a196c713..cebea28b 100644
  };
  
  cfg_if::cfg_if! {
-@@ -52,6 +53,7 @@ impl PluginHandle {
+@@ -50,6 +51,7 @@ impl PluginHandle {
  pub(super) struct AppServiceCallers {
      register_command_caller: Box<dyn ipc::ServiceCaller<RegisterCommandService>>,
      register_event_handler_caller: Box<dyn ipc::ServiceCaller<RegisterEventHandlerService>>,
@@ -398,7 +400,7 @@ index a196c713..cebea28b 100644
      #[cfg(feature = "completions_v2")]
      register_command_signatures_caller:
          Box<dyn ipc::ServiceCaller<RegisterCommandSignatureService>>,
-@@ -66,6 +68,7 @@ impl AppServiceCallers {
+@@ -64,6 +66,7 @@ impl AppServiceCallers {
              register_event_handler_caller: ipc::service_caller::<RegisterEventHandlerService>(
                  app_client.clone(),
              ),
@@ -406,7 +408,7 @@ index a196c713..cebea28b 100644
              #[cfg(feature = "completions_v2")]
              register_command_signatures_caller: ipc::service_caller::<
                  RegisterCommandSignatureService,
-@@ -147,6 +150,18 @@ impl Plugin {
+@@ -145,6 +148,18 @@ impl Plugin {
          }
      }
  
@@ -486,10 +488,10 @@ index 9ee43c5c..efc7bfcb 100644
  pub use commands::*;
  pub use events::*;
 diff --git a/app/src/workspace/action.rs b/app/src/workspace/action.rs
-index 0d82d20c..8bcce4fa 100644
+index 05138589..ddc972f1 100644
 --- a/app/src/workspace/action.rs
 +++ b/app/src/workspace/action.rs
-@@ -103,6 +103,10 @@ pub enum AutoCloudHandoffTrigger {
+@@ -101,6 +101,10 @@ pub enum AutoCloudHandoffTrigger {
  
  #[derive(Debug, Clone)]
  pub enum WorkspaceAction {
@@ -500,7 +502,7 @@ index 0d82d20c..8bcce4fa 100644
      ActivateTab(usize),
      ActivatePrevTab,
      ActivateNextTab,
-@@ -744,6 +748,8 @@ impl WorkspaceAction {
+@@ -745,6 +749,8 @@ impl WorkspaceAction {
      pub fn should_save_app_state_on_action(&self) -> bool {
          use WorkspaceAction::*;
          match self {
@@ -510,10 +512,10 @@ index 0d82d20c..8bcce4fa 100644
              ContinueConversationLocally { .. } => true,
              ActivateTab(_)
 diff --git a/app/src/workspace/view.rs b/app/src/workspace/view.rs
-index d741a440..c62ed677 100644
+index bf786260..dfa49128 100644
 --- a/app/src/workspace/view.rs
 +++ b/app/src/workspace/view.rs
-@@ -21152,6 +21152,12 @@ impl TypedActionView for Workspace {
+@@ -21052,6 +21052,12 @@ impl TypedActionView for Workspace {
          }
  
          match action {
