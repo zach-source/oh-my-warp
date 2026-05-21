@@ -16,7 +16,7 @@ Warp already has **three** extension tiers. Two are production-ready. The third 
 |---|---|---|---|---|
 | **1. Config** | themes · workflows · launch_configs · `keybindings.yaml` | YAML/JSON | files under `~/.config/warp/…`, read at runtime | ✅ live |
 | **2. MCP** (`crates/mcp`, rmcp 1.6) | AI tools / resources / prompts | *any* | `.mcp.json` → stdio/SSE child + JSON-RPC | ✅ live |
-| **3. JS plugin host** (`app/src/plugin/`) | in-app behavior | JavaScript (QuickJS) | `~/.warp/plugins/*/main.js` → subprocess | ⚠️ exists, **compiled out** |
+| **3. JS plugin host** (`app/src/plugin/`) | in-app behavior | JavaScript (QuickJS) | `~/.warp/plugins/*/main.js` → subprocess | ✅ **enabled** (M0–M1: `warp.log`, `warp.commands`) |
 | 2.5 gRPC agent bridge (oh-my-warp) | custom agent backends | any | `agent_backends.toml` ([BACKEND_INTERFACE.md](BACKEND_INTERFACE.md)) | overlay |
 
 **What you can do today:** add config, and add AI tools via MCP. **What you cannot do:** add a command, react to a command finishing, or draw anything. That is the entire gap, and tier 3 is purpose-built to close it.
@@ -290,27 +290,29 @@ This is what keeps third-party plugins alive across `./omw sync`.
 
 Phased; each phase is independently shippable. **Code → patches** (edits to upstream files / new files a patch owns); **docs & examples → overlay** (committed straight to `oh-my-warp`, like this file). Mapping per the [golden rule](CLAUDE.md).
 
-### Phase 0 — turn the host on  *(tiny, proves the pipe)*
-- **Patch:** add a `plugin_host`-enabling feature to the default build (a dedicated `omw_plugins` feature so we don't drag in `completions_v2`'s classic-vs-v2 machinery). `app/Cargo.toml`.
-- **Patch:** make `warp()` (`js_api/mod.rs`) always add a `console`-style `warp.log` + `warp.version` even without `completions_v2`.
-- **Overlay:** `examples/plugins/hello/` with a `plugin.json` + `main.js` that logs on startup.
-- **Verify:** `~/.warp/plugins/hello/` logs through `LogService`.
+### Phase 0 — turn the host on  *(tiny, proves the pipe)* — ✅ **DONE** (patches 0014–0016)
+- **Patch:** `omw_plugins` feature (= `plugin_host`) on by default. `app/Cargo.toml`.
+- **Patch:** `warp()` (`js_api/mod.rs`) always exposes `warp.version` + `warp.log(message, level?)`.
+- **Patch (bugfix):** `PLUGIN_HOST_FLAG` `--plugin_host` → `--plugin-host` (matches the clap `long_flag`; the underscore made the spawned host exit on arg-parse).
+- **Overlay:** `examples/plugins/hello/`.
+- **Verified:** `~/.warp/plugins/hello/main.js` logs through `LogService` on startup.
 
-### Phase 1 — commands + toasts  *(the core gap → first real value)*
-- **Patch:** runtime **command registry** (name → `JsFunctionId`), new `RegisterCommandService` (template: `service/completions.rs` + `app/service_impl/completions.rs` + `host/native/service_impl.rs`); surface registered commands in the palette (`app/src/command_palette.rs`).
-- **Patch:** `warp.commands.register/execute` + `warp.ui.toast` (`js_api/commands.rs`, `js_api/ui.rs`, new `UiService`).
-- **Patch:** manifest parsing + `contributes.commands` (declarative listing without executing code); discovery in `plugin_ref.rs`/`mod.rs`.
-- **Overlay:** example plugin registers `greet.hello` → toast.
+### Phase 1 (M1) — commands + toasts  *(the core gap → first real value)* — ✅ **DONE** (patches 0017–0018)
+- **Patch:** runtime **command registry** (`app/src/plugin/commands.rs`, id → `JsFunctionId`) + `RegisterCommandService`; `warp.commands.register(id, title, cb)`.
+- **Patch:** `PluginCommandDataSource` surfaces commands in the palette as synthetic `plugin:<id>` `CommandBinding`s (reusing `MatchedBinding`/`AcceptBinding` — no new `CommandPaletteItemAction` variant); the accept handler invokes the callback via `CallJsFunctionService` and shows the callback's returned string as an ephemeral toast (`ToastStack`).
+- **Overlay:** example plugin registers `greet.hello` / `greet.time`.
+- **Verified:** palette command → JS callback runs → toast.
+- *Deferred to later phases:* `warp.commands.execute`, manifest parsing/`contributes` (→ M3), and the general anytime-callable `warp.ui.toast` (→ M2, below).
 
-### Phase 2 — keybindings + terminal events + declarative contributes
-- **Patch:** `warp.keymap.bind` via editable bindings (`keymap.rs`); `contributes.keybindings`/`themes`/`workflows` routed into tier-1 loaders.
-- **Patch:** `warp.terminal.onCommandFinished/onCommandStart/onBlockCreated` — app→plugin callbacks fired from the ANSI DCS hook sites (`terminal/model/ansi/*`) via `CallJsFunctionService`.
-- **Patch:** `engines.warp` enforcement + Settings → Plugins list (status, permissions).
+### Phase 2 (M2) — terminal events + general toast + keybindings  *(make plugins react)* — 🚧 **IN PROGRESS**
+- **Patch:** general **`warp.ui.toast(message, opts?)`** — host→app `UiService`; the IPC handler enqueues onto a channel that the `PluginHost` model drains on the foreground executor → `ToastStack` (the background→foreground hop M1 sidestepped).
+- **Patch:** `warp.terminal.onCommandStart / onCommandFinished` — plugins register JS callbacks (stored per-event in `app/src/plugin/commands.rs`-style registry); fired from the command-lifecycle event surface with a `{command, exitCode, cwd, durationMs}` payload via `CallJsFunctionService`.
+- **Patch:** `warp.keymap.bind(commandId, keys)` — registers a runtime editable binding whose action runs the plugin command (reusing the leader/`EditableBinding` mechanism).
+- **Overlay:** example plugin toasts on failed/slow commands and binds a command to a leader chord.
 
-### Phase 3 — AI tools, richer UI, capabilities
+### Phase 3 (M3+) — manifest, AI tools, richer UI, capabilities
+- **Patch:** `plugin.json` manifest + `engines.warp` enforcement + declarative `contributes` + Settings → Plugins list.
 - **Patch:** `warp.ai.registerTool` injecting into `MCPContext` (`ai/agent/api/convert_to.rs`); `warp.ui.showMarkdown`/`showPalette`; capability model (`fs`/`process`/`network`) with consent.
-
-**Smallest first patch = Phase 0 + the `warp.commands`/`toast` slice of Phase 1.** That alone makes Warp third-party-extensible.
 
 ---
 
