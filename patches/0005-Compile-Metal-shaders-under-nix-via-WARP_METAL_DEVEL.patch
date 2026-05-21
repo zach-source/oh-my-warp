@@ -1,7 +1,7 @@
-From e8823f8f4c6ec993ccadaf3034417f699ae48dc8 Mon Sep 17 00:00:00 2001
+From d8c9e09cdbd42ee4023c153e10049dfac6437fe4 Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Wed, 20 May 2026 12:29:17 -0400
-Subject: [PATCH 05/21] Compile Metal shaders under nix via
+Subject: [PATCH 05/22] Compile Metal shaders under nix via
  WARP_METAL_DEVELOPER_DIR
 
 Under nix/devenv, DEVELOPER_DIR points at the nix apple-sdk (no `metal`), and

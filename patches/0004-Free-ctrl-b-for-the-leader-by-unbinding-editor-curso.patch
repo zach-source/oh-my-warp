@@ -1,7 +1,7 @@
-From bd2c6cdfdc71e9cf2b0f824dd528970c71116685 Mon Sep 17 00:00:00 2001
+From eaea64a5be846cb0b5d8fcf4cd8b706d934a1cb1 Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Wed, 20 May 2026 12:29:16 -0400
-Subject: [PATCH 04/21] Free ctrl-b for the leader by unbinding editor
+Subject: [PATCH 04/22] Free ctrl-b for the leader by unbinding editor
  cursor-left
 
 The leader prefix is ctrl-b, but EditorView bound ctrl-b to editor_view:left
