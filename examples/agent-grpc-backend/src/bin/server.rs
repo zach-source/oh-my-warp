@@ -218,7 +218,8 @@ impl AgentService for HarnessHost {
         }
 
         Ok(Response::new(SpawnAgentResponse {
-            task_id: format!("task_{}", short_id()),
+            // UUID so Warp's AIClient bridge (AmbientAgentTaskId) accepts it.
+            task_id: uuid::Uuid::new_v4().to_string(),
             run_id,
             at_capacity: false,
         }))

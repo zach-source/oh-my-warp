@@ -30,6 +30,8 @@ tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 serde = { version = "1", features = ["derive"] }
 toml = "0.8"
+# UUID task ids so the Warp AIClient bridge (AmbientAgentTaskId) accepts them.
+uuid = { version = "1", features = ["v4"] }
 
 [build-dependencies]
 tonic-build = "0.12"
