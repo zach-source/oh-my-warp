@@ -16,7 +16,7 @@ Warp already has **three** extension tiers. Two are production-ready. The third 
 |---|---|---|---|---|
 | **1. Config** | themes · workflows · launch_configs · `keybindings.yaml` | YAML/JSON | files under `~/.config/warp/…`, read at runtime | ✅ live |
 | **2. MCP** (`crates/mcp`, rmcp 1.6) | AI tools / resources / prompts | *any* | `.mcp.json` → stdio/SSE child + JSON-RPC | ✅ live |
-| **3. JS plugin host** (`app/src/plugin/`) | in-app behavior | JavaScript (QuickJS) | `~/.warp/plugins/*/main.js` → subprocess | ✅ **enabled** (M0–M1: `warp.log`, `warp.commands`) |
+| **3. JS plugin host** (`app/src/plugin/`) | in-app behavior | JavaScript (QuickJS) | `~/.warp/plugins/*/main.js` → subprocess | ✅ **enabled** (M0–M2: `warp.log`, `warp.commands`, `warp.terminal`) |
 | 2.5 gRPC agent bridge (oh-my-warp) | custom agent backends | any | `agent_backends.toml` ([BACKEND_INTERFACE.md](BACKEND_INTERFACE.md)) | overlay |
 
 **What you can do today:** add config, and add AI tools via MCP. **What you cannot do:** add a command, react to a command finishing, or draw anything. That is the entire gap, and tier 3 is purpose-built to close it.
@@ -302,15 +302,16 @@ Phased; each phase is independently shippable. **Code → patches** (edits to up
 - **Patch:** `PluginCommandDataSource` surfaces commands in the palette as synthetic `plugin:<id>` `CommandBinding`s (reusing `MatchedBinding`/`AcceptBinding` — no new `CommandPaletteItemAction` variant); the accept handler invokes the callback via `CallJsFunctionService` and shows the callback's returned string as an ephemeral toast (`ToastStack`).
 - **Overlay:** example plugin registers `greet.hello` / `greet.time`.
 - **Verified:** palette command → JS callback runs → toast.
-- *Deferred to later phases:* `warp.commands.execute`, manifest parsing/`contributes` (→ M3), and the general anytime-callable `warp.ui.toast` (→ M2, below).
+- *Deferred to later phases:* `warp.commands.execute`, manifest parsing/`contributes` (→ M3), and the general anytime-callable `warp.ui.toast` (→ M3).
 
-### Phase 2 (M2) — terminal events + general toast + keybindings  *(make plugins react)* — 🚧 **IN PROGRESS**
-- **Patch:** general **`warp.ui.toast(message, opts?)`** — host→app `UiService`; the IPC handler enqueues onto a channel that the `PluginHost` model drains on the foreground executor → `ToastStack` (the background→foreground hop M1 sidestepped).
-- **Patch:** `warp.terminal.onCommandStart / onCommandFinished` — plugins register JS callbacks (stored per-event in `app/src/plugin/commands.rs`-style registry); fired from the command-lifecycle event surface with a `{command, exitCode, cwd, durationMs}` payload via `CallJsFunctionService`.
-- **Patch:** `warp.keymap.bind(commandId, keys)` — registers a runtime editable binding whose action runs the plugin command (reusing the leader/`EditableBinding` mechanism).
-- **Overlay:** example plugin toasts on failed/slow commands and binds a command to a leader chord.
+### Phase 2 (M2) — terminal events  *(make plugins react)* — ✅ **DONE** (patch 0019)
+- **Patch:** `warp.terminal.onCommandStart / onCommandFinished` — plugins register JS callbacks via `RegisterEventHandlerService` into a per-event registry (`app/src/plugin/events.rs`); the terminal view fires them from the `AfterBlockStarted`/`AfterBlockCompleted` handlers (`terminal/view.rs`) with a `{command, exitCode, cwd, durationMs}` payload via `CallJsFunctionService`. A callback that returns a string shows it as a toast (lenient `OptionalToast`, shown at the ctx-rich fire site — no host→app hop).
+- **Overlay:** example plugin logs every command and toasts on failed / slow commands.
+- **Verified:** running a command in the terminal fires `onCommandFinished`; a failing command shows a toast.
 
-### Phase 3 (M3+) — manifest, AI tools, richer UI, capabilities
+### Phase 3 (M3+) — keybindings, general toast, manifest, AI tools, richer UI, capabilities
+- **Patch:** `warp.keymap.bind(commandId, keys)` + declarative `contributes.keybindings`. *(Moved here from M2: binding a key needs runtime keymap registration via a background→foreground drain **and** a new dispatchable action routed to a handler; it composes much more cleanly with the manifest-loaded `contributes.keybindings`, which already runs at a `ctx`-available point. Events were the reactive core of M2 and shipped independently.)*
+- **Patch:** general **`warp.ui.toast(message, opts?)`** — host→app `UiService` whose handler enqueues onto a channel that the `PluginHost` model drains on the foreground executor → `ToastStack`. (M1/M2 toasts come from callback return values shown at ctx-rich sites; this adds the anytime-callable form.)
 - **Patch:** `plugin.json` manifest + `engines.warp` enforcement + declarative `contributes` + Settings → Plugins list.
 - **Patch:** `warp.ai.registerTool` injecting into `MCPContext` (`ai/agent/api/convert_to.rs`); `warp.ui.showMarkdown`/`showPalette`; capability model (`fs`/`process`/`network`) with consent.
 
