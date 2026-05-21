@@ -15,3 +15,4 @@
 0013-Disable-Sentry-crash-reporting-egress-oh-my-warp.patch
 0014-Enable-the-JavaScript-plugin-host-in-the-default-bui.patch
 0015-Add-base-warp.log-warp.version-plugin-API-oh-my-warp.patch
+0016-Fix-plugin-host-launch-flag-so-the-host-actually-sta.patch
