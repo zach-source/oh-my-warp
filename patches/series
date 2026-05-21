@@ -20,3 +20,4 @@
 0018-Surface-plugin-commands-in-the-command-palette-run-w.patch
 0019-Add-warp.terminal-command-lifecycle-events-oh-my-war.patch
 0020-Add-warp.ui.toast-warp.keymap.bind-oh-my-warp.patch
+0021-Fix-plugin-host-crash-from-blocking-IPC-in-warp.ui.t.patch

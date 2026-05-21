@@ -1,7 +1,7 @@
-From 143c0d3dff08f1a95be9638d259d290592d38b8b Mon Sep 17 00:00:00 2001
+From 50fadf518d1c540c760f3ff191d18dba1c1db1d7 Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Wed, 20 May 2026 11:05:27 -0400
-Subject: [PATCH 01/20] Add tmux-style leader-key (ctrl-b) chords for tab
+Subject: [PATCH 01/21] Add tmux-style leader-key (ctrl-b) chords for tab
  management
 
 Introduces a configurable leader/prefix key (default ctrl-b) so you can run

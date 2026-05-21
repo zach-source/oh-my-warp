@@ -1,7 +1,7 @@
-From 6d2fbc8d27b1a90a262cdb54f62dd5c9aff6f70e Mon Sep 17 00:00:00 2001
+From ae908025af1c776c3ae68b4f0586d4b3106913c6 Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Wed, 20 May 2026 22:12:45 -0400
-Subject: [PATCH 08/20] Rebrand the OSS app bundle as oh-my-warp
+Subject: [PATCH 08/21] Rebrand the OSS app bundle as oh-my-warp
 
 Build output is now oh-my-warp.app (display name oh-my-warp) instead of
 WarpOss.app. Only the bundle product/display name changes: the binary
