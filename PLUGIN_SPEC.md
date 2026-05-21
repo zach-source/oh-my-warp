@@ -16,7 +16,7 @@ Warp already has **three** extension tiers. Two are production-ready. The third 
 |---|---|---|---|---|
 | **1. Config** | themes · workflows · launch_configs · `keybindings.yaml` | YAML/JSON | files under `~/.config/warp/…`, read at runtime | ✅ live |
 | **2. MCP** (`crates/mcp`, rmcp 1.6) | AI tools / resources / prompts | *any* | `.mcp.json` → stdio/SSE child + JSON-RPC | ✅ live |
-| **3. JS plugin host** (`app/src/plugin/`) | in-app behavior | JavaScript (QuickJS) | `~/.warp/plugins/*/main.js` → subprocess | ✅ **enabled** (M0–M2: `warp.log`, `warp.commands`, `warp.terminal`) |
+| **3. JS plugin host** (`app/src/plugin/`) | in-app behavior | JavaScript (QuickJS) | `~/.warp/plugins/*/main.js` → subprocess | ✅ **enabled** (M0–M3: `warp.log`, `warp.commands`, `warp.terminal`, `warp.ui`, `warp.keymap`) |
 | 2.5 gRPC agent bridge (oh-my-warp) | custom agent backends | any | `agent_backends.toml` ([BACKEND_INTERFACE.md](BACKEND_INTERFACE.md)) | overlay |
 
 **What you can do today:** add config, and add AI tools via MCP. **What you cannot do:** add a command, react to a command finishing, or draw anything. That is the entire gap, and tier 3 is purpose-built to close it.
@@ -309,10 +309,13 @@ Phased; each phase is independently shippable. **Code → patches** (edits to up
 - **Overlay:** example plugin logs every command and toasts on failed / slow commands.
 - **Verified:** running a command in the terminal fires `onCommandFinished`; a failing command shows a toast.
 
-### Phase 3 (M3+) — keybindings, general toast, manifest, AI tools, richer UI, capabilities
-- **Patch:** `warp.keymap.bind(commandId, keys)` + declarative `contributes.keybindings`. *(Moved here from M2: binding a key needs runtime keymap registration via a background→foreground drain **and** a new dispatchable action routed to a handler; it composes much more cleanly with the manifest-loaded `contributes.keybindings`, which already runs at a `ctx`-available point. Events were the reactive core of M2 and shipped independently.)*
-- **Patch:** general **`warp.ui.toast(message, opts?)`** — host→app `UiService` whose handler enqueues onto a channel that the `PluginHost` model drains on the foreground executor → `ToastStack`. (M1/M2 toasts come from callback return values shown at ctx-rich sites; this adds the anytime-callable form.)
-- **Patch:** `plugin.json` manifest + `engines.warp` enforcement + declarative `contributes` + Settings → Plugins list.
+### Phase 3 (M3) — general toast + keybindings  *(finish the imperative surface)* — ✅ **DONE** (patch 0020)
+- **Patch:** general **`warp.ui.toast(message, kind?)`** and **`warp.keymap.bind(commandId, keys)`** — both need a foreground `AppContext`, so the IPC handler enqueues a `PluginAppRequest` onto a channel (`app/src/plugin/app_requests.rs`) that the `PluginHost` model drains via `spawn_stream_local` on the foreground executor, where it shows a toast (`ToastStack`) or registers an editable binding. Keybindings dispatch a new `WorkspaceAction::RunPluginCommand(id)`, handled by the `Workspace`, which runs the command via the shared `commands::run_plugin_command`.
+- **Overlay:** example plugin adds a `warp.ui.toast` command and binds `greet.keybound` to the `ctrl-b h` leader chord.
+- **Verified:** running the toast command shows a toast; pressing `ctrl-b h` runs the bound command.
+
+### Phase 4 (M4) — manifest, declarative contributes, AI tools, richer UI, capabilities
+- **Patch:** `plugin.json` manifest + `engines.warp` enforcement + declarative `contributes` (commands / keybindings / themes / workflows) + Settings → Plugins list (status, permissions).
 - **Patch:** `warp.ai.registerTool` injecting into `MCPContext` (`ai/agent/api/convert_to.rs`); `warp.ui.showMarkdown`/`showPalette`; capability model (`fs`/`process`/`network`) with consent.
 
 ---
