@@ -1,0 +1,9 @@
+{
+  "id": "com.ohmywarp.hello",
+  "name": "Hello",
+  "version": "1.0.0",
+  "engines": { "warp": "^1.0" },
+  "main": "main.js",
+  "description": "Phase 0 sample: logs through the plugin host on startup.",
+  "activationEvents": ["onStartup"]
+}
