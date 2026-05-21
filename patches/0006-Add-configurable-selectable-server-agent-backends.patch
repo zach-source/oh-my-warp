@@ -1,7 +1,7 @@
-From c292492fc6c117e186fd5c18c4731d50d9d92bab Mon Sep 17 00:00:00 2001
+From c5a46f9a8a875a4801e197d09e36f6fbff9a9ffa Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Wed, 20 May 2026 13:03:05 -0400
-Subject: [PATCH 6/7] Add configurable, selectable server/agent backends
+Subject: [PATCH 6/8] Add configurable, selectable server/agent backends
 
 New crate::util::agent_backends: an agent_backends.toml (in Warp's config dir)
 defining alternative backends (id/name/server_url/ws_url) plus a 'selected' id.

@@ -1,7 +1,7 @@
-From 17f14c7b1ec0ec0bccc668ebb2eb5af7a1ed5300 Mon Sep 17 00:00:00 2001
+From 218fd4a5dbbb3fbea4632cf2015b3c6246269de9 Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Wed, 20 May 2026 11:51:24 -0400
-Subject: [PATCH 3/7] Show a leader-engaged indicator in the tab bar with
+Subject: [PATCH 3/8] Show a leader-engaged indicator in the tab bar with
  auto-cancel
 
 Surface the keymap matcher's in-progress multi-keystroke sequence so the UI

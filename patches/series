@@ -7,3 +7,4 @@
 0005-Compile-Metal-shaders-under-nix-via-WARP_METAL_DEVEL.patch
 0006-Add-configurable-selectable-server-agent-backends.patch
 0007-Add-Settings-dropdown-to-select-the-active-backend.patch
+0008-Rebrand-the-OSS-app-bundle-as-oh-my-warp.patch
