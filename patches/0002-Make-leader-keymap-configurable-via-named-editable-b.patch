@@ -1,4 +1,4 @@
-From 6be7d7ce98f217cd6cd600eb2b6a97b3424365c7 Mon Sep 17 00:00:00 2001
+From 0cbc9348345ed3f31c47fb3649af8571bca3f047 Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Wed, 20 May 2026 11:51:24 -0400
 Subject: [PATCH 2/9] Make leader keymap configurable via named editable

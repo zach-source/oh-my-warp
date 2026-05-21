@@ -1,4 +1,4 @@
-From a2b656be9c593733409967821279c251a93992bc Mon Sep 17 00:00:00 2001
+From aef36cf71bd89254eb66fdc2442819a4e27ab8b8 Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Wed, 20 May 2026 13:03:05 -0400
 Subject: [PATCH 6/9] Add configurable, selectable server/agent backends
