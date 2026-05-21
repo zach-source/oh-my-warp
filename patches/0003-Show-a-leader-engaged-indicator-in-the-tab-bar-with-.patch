@@ -1,4 +1,4 @@
-From 20525eb75848e9c8a41b3b2197fa2d5380dfc098 Mon Sep 17 00:00:00 2001
+From 7103d586d0dcc105434d1eb138fb38215683b6be Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Wed, 20 May 2026 11:51:24 -0400
 Subject: [PATCH 3/9] Show a leader-engaged indicator in the tab bar with
