@@ -23,9 +23,10 @@ grep -r "hello from oh-my-warp" ~/Library/Logs/
 
 You should see the `activate()` output relayed from the host via the IPC `LogService`.
 
-## What works today (Phase 0)
+## What works today (Phases 0–1)
 
 - The host loads each plugin's **`main.js`** (compiled as an ES module) and calls **`export function activate(warp)`**.
 - Base API: **`warp.version`** and **`warp.log(message, level?)`** (`level`: `"info"` | `"warn"` | `"error"`). A `console` global is also available.
+- **`warp.commands.register(id, title, callback)`** — adds a command to the **command palette** (⌘P). Running it executes `callback` in the plugin host; the string it returns is shown as a **toast**. Try the `hello` plugin's *"Greet: Say Hello"* / *"Greet: Show Time"*.
 
-The `plugin.json` manifest is included for forward-compatibility but is **not parsed yet** — manifest discovery, `engines.warp` enforcement, and the richer `warp.*` namespaces (`commands`, `keymap`, `terminal`, `ui`, …) arrive in later phases. See [`PLUGIN_SPEC.md`](../../PLUGIN_SPEC.md).
+The `plugin.json` manifest is included for forward-compatibility but is **not parsed yet** — manifest discovery, `engines.warp` enforcement, and the richer `warp.*` namespaces (`keymap`, `terminal`, `ui.toast`, …) arrive in later phases. See [`PLUGIN_SPEC.md`](../../PLUGIN_SPEC.md).
