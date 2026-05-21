@@ -1,0 +1,514 @@
+From 806ffe4e5dc11135d1259f4d6f07d0a725ee1b44 Mon Sep 17 00:00:00 2001
+From: Zach Taylor <zctaylor.work@gmail.com>
+Date: Wed, 20 May 2026 22:48:46 -0400
+Subject: [PATCH 9/9] Add in-process gRPC agent bridge (oh-my-warp)
+
+Phase 1: a passthrough AIClient decorator (app/src/server/server_api/ai/bridge.rs)
+injected at ServerApi::get_ai_client(), gated on a backend with a grpc_endpoint
+(new field on agent_backends::Backend). Forwards all 46 trait methods to the real
+client today; Phase 2 will override the agent control ops to call the gRPC harness
+host, Phase 3 bridges the event stream. No behavior change unless a gRPC backend
+is selected.
+---
+ app/src/server/server_api.rs           |   4 +-
+ app/src/server/server_api/ai.rs        |   3 +
+ app/src/server/server_api/ai/bridge.rs | 426 +++++++++++++++++++++++++
+ app/src/util/agent_backends.rs         |  16 +
+ 4 files changed, 448 insertions(+), 1 deletion(-)
+ create mode 100644 app/src/server/server_api/ai/bridge.rs
+
+diff --git a/app/src/server/server_api.rs b/app/src/server/server_api.rs
+index 0dc2ae16..eead939f 100644
+--- a/app/src/server/server_api.rs
++++ b/app/src/server/server_api.rs
+@@ -1524,7 +1524,9 @@ impl ServerApiProvider {
+     }
+ 
+     pub fn get_ai_client(&self) -> Arc<dyn AIClient> {
+-        self.server_api.clone()
++        // oh-my-warp: route agent ops through the in-process gRPC bridge when a
++        // gRPC backend is selected; otherwise returns the client unchanged.
++        ai::bridge::maybe_wrap(self.server_api.clone())
+     }
+ 
+     pub fn get_cloud_objects_client(&self) -> Arc<dyn ObjectClient> {
+diff --git a/app/src/server/server_api/ai.rs b/app/src/server/server_api/ai.rs
+index a44da033..f59957d1 100644
+--- a/app/src/server/server_api/ai.rs
++++ b/app/src/server/server_api/ai.rs
+@@ -868,6 +868,9 @@ pub struct ListConnectedSelfHostedWorkersResponse {
+ 
+ pub(crate) const CONNECTED_SELF_HOSTED_WORKERS_PATH: &str = "agent/connected-self-hosted-workers";
+ 
++/// oh-my-warp: in-process gRPC agent bridge that decorates [`AIClient`].
++pub(crate) mod bridge;
++
+ #[cfg_attr(test, automock)]
+ #[cfg_attr(not(target_family = "wasm"), async_trait)]
+ #[cfg_attr(target_family = "wasm", async_trait(?Send))]
+diff --git a/app/src/server/server_api/ai/bridge.rs b/app/src/server/server_api/ai/bridge.rs
+new file mode 100644
+index 00000000..a604c734
+--- /dev/null
++++ b/app/src/server/server_api/ai/bridge.rs
+@@ -0,0 +1,426 @@
++//! oh-my-warp: in-process bridge that routes Warp's agent operations to a custom
++//! gRPC harness host (see `examples/agent-grpc-backend`) when a gRPC backend is
++//! selected via the backend selector ([`crate::util::agent_backends`]).
++//!
++//! Built in phases (see `examples/agent-grpc-backend/BRIDGE_SPEC.md` §7):
++//!   * **Phase 1 (this file):** a *passthrough* decorator over `Arc<dyn AIClient>`,
++//!     injected at [`super::super::ServerApi::get_ai_client`] and gated on the
++//!     selected backend. It forwards every method to the real client — proving the
++//!     seam compiles + injects with zero behavior change.
++//!   * Phase 2 overrides the agent control ops (spawn/send/read/list/report/…) to
++//!     call the gRPC harness host.
++//!   * Phase 3 bridges the live event stream (`ServerApi::stream_agent_events`).
++//!
++//! Lives as a child module of `ai` so `use super::*` pulls in the `AIClient` trait
++//! and every request/response type without re-importing them.
++
++use super::*;
++use std::sync::Arc;
++
++/// Decorator over the real [`AIClient`]. Phase 1: pure passthrough to `inner`.
++pub(crate) struct GrpcBridgeAIClient {
++    inner: Arc<dyn AIClient>,
++    /// gRPC endpoint of the harness host (e.g. `http://127.0.0.1:50061`). Unused in
++    /// Phase 1; the control-op overrides in Phase 2 dial it.
++    #[allow(dead_code)]
++    endpoint: String,
++}
++
++impl GrpcBridgeAIClient {
++    pub(crate) fn new(inner: Arc<dyn AIClient>, endpoint: String) -> Self {
++        Self { inner, endpoint }
++    }
++}
++
++/// Wraps `inner` with the gRPC bridge iff a gRPC backend is selected; otherwise
++/// returns `inner` unchanged (built-in Warp behavior). Called from
++/// `ServerApi::get_ai_client()`.
++pub(crate) fn maybe_wrap(inner: Arc<dyn AIClient>) -> Arc<dyn AIClient> {
++    match crate::util::agent_backends::selected_grpc_endpoint() {
++        Some(endpoint) => {
++            log::info!("oh-my-warp: routing agent ops through gRPC bridge → {endpoint}");
++            Arc::new(GrpcBridgeAIClient::new(inner, endpoint))
++        }
++        None => inner,
++    }
++}
++
++#[cfg_attr(not(target_family = "wasm"), async_trait)]
++#[cfg_attr(target_family = "wasm", async_trait(?Send))]
++impl AIClient for GrpcBridgeAIClient {
++    // Phase 1: every method forwards to the real client (no behavior change).
++    // Phase 2 will replace the agent-control forwards below with gRPC calls.
++
++    async fn generate_commands_from_natural_language(
++        &self,
++        prompt: String,
++        ai_execution_context: Option<WarpAiExecutionContext>,
++    ) -> Result<Vec<AIGeneratedCommand>, GenerateCommandsFromNaturalLanguageError> {
++        self.inner
++            .generate_commands_from_natural_language(prompt, ai_execution_context)
++            .await
++    }
++
++    async fn generate_dialogue_answer(
++        &self,
++        transcript: Vec<TranscriptPart>,
++        prompt: String,
++        ai_execution_context: Option<WarpAiExecutionContext>,
++    ) -> anyhow::Result<GenerateDialogueResult> {
++        self.inner
++            .generate_dialogue_answer(transcript, prompt, ai_execution_context)
++            .await
++    }
++
++    async fn generate_metadata_for_command(
++        &self,
++        command: String,
++    ) -> Result<GeneratedCommandMetadata, GeneratedCommandMetadataError> {
++        self.inner.generate_metadata_for_command(command).await
++    }
++
++    async fn get_request_limit_info(&self) -> Result<RequestUsageInfo, anyhow::Error> {
++        self.inner.get_request_limit_info().await
++    }
++
++    async fn get_feature_model_choices(&self) -> Result<ModelsByFeature, anyhow::Error> {
++        self.inner.get_feature_model_choices().await
++    }
++
++    async fn get_available_harnesses(&self) -> Result<Vec<HarnessAvailability>, anyhow::Error> {
++        self.inner.get_available_harnesses().await
++    }
++
++    async fn list_connected_self_hosted_workers(
++        &self,
++    ) -> Result<ListConnectedSelfHostedWorkersResponse, anyhow::Error> {
++        self.inner.list_connected_self_hosted_workers().await
++    }
++
++    async fn get_free_available_models(
++        &self,
++        referrer: Option<String>,
++    ) -> Result<ModelsByFeature, anyhow::Error> {
++        self.inner.get_free_available_models(referrer).await
++    }
++
++    async fn update_merkle_tree(
++        &self,
++        embedding_config: EmbeddingConfig,
++        nodes: Vec<IntermediateNode>,
++    ) -> anyhow::Result<HashMap<NodeHash, bool>> {
++        self.inner.update_merkle_tree(embedding_config, nodes).await
++    }
++
++    async fn generate_code_embeddings(
++        &self,
++        embedding_config: EmbeddingConfig,
++        fragments: Vec<full_source_code_embedding::Fragment>,
++        root_hash: NodeHash,
++        repo_metadata: RepoMetadata,
++    ) -> anyhow::Result<HashMap<ContentHash, bool>> {
++        self.inner
++            .generate_code_embeddings(embedding_config, fragments, root_hash, repo_metadata)
++            .await
++    }
++
++    async fn provide_negative_feedback_response_for_ai_conversation(
++        &self,
++        conversation_id: String,
++        request_ids: Vec<String>,
++    ) -> anyhow::Result<i32, anyhow::Error> {
++        self.inner
++            .provide_negative_feedback_response_for_ai_conversation(conversation_id, request_ids)
++            .await
++    }
++
++    async fn create_agent_task(
++        &self,
++        prompt: String,
++        environment_uid: Option<String>,
++        parent_run_id: Option<String>,
++        config: Option<AgentConfigSnapshot>,
++    ) -> anyhow::Result<AmbientAgentTaskId, anyhow::Error> {
++        self.inner
++            .create_agent_task(prompt, environment_uid, parent_run_id, config)
++            .await
++    }
++
++    async fn update_agent_task(
++        &self,
++        task_id: AmbientAgentTaskId,
++        task_state: Option<AgentTaskState>,
++        session_id: Option<session_sharing_protocol::common::SessionId>,
++        conversation_id: Option<String>,
++        status_message: Option<TaskStatusUpdate>,
++    ) -> anyhow::Result<(), anyhow::Error> {
++        self.inner
++            .update_agent_task(
++                task_id,
++                task_state,
++                session_id,
++                conversation_id,
++                status_message,
++            )
++            .await
++    }
++
++    async fn spawn_agent(
++        &self,
++        request: SpawnAgentRequest,
++    ) -> anyhow::Result<SpawnAgentResponse, anyhow::Error> {
++        self.inner.spawn_agent(request).await
++    }
++
++    async fn upload_local_handoff_snapshot(
++        &self,
++        request: UploadLocalHandoffSnapshotRequest,
++    ) -> anyhow::Result<UploadLocalHandoffSnapshotResponse, anyhow::Error> {
++        self.inner.upload_local_handoff_snapshot(request).await
++    }
++
++    async fn fork_conversation(
++        &self,
++        conversation_id: String,
++        title: Option<String>,
++    ) -> anyhow::Result<ForkConversationResponse, anyhow::Error> {
++        self.inner.fork_conversation(conversation_id, title).await
++    }
++
++    async fn list_ambient_agent_tasks(
++        &self,
++        limit: i32,
++        filter: TaskListFilter,
++    ) -> anyhow::Result<Vec<AmbientAgentTask>, anyhow::Error> {
++        self.inner.list_ambient_agent_tasks(limit, filter).await
++    }
++
++    async fn list_agent_runs_raw(
++        &self,
++        limit: i32,
++        filter: TaskListFilter,
++    ) -> anyhow::Result<serde_json::Value, anyhow::Error> {
++        self.inner.list_agent_runs_raw(limit, filter).await
++    }
++
++    async fn get_ambient_agent_task(
++        &self,
++        task_id: &AmbientAgentTaskId,
++    ) -> anyhow::Result<AmbientAgentTask, anyhow::Error> {
++        self.inner.get_ambient_agent_task(task_id).await
++    }
++
++    async fn get_agent_run_raw(
++        &self,
++        task_id: &AmbientAgentTaskId,
++    ) -> anyhow::Result<serde_json::Value, anyhow::Error> {
++        self.inner.get_agent_run_raw(task_id).await
++    }
++
++    async fn submit_run_followup(
++        &self,
++        run_id: &AmbientAgentTaskId,
++        request: RunFollowupRequest,
++    ) -> anyhow::Result<(), anyhow::Error> {
++        self.inner.submit_run_followup(run_id, request).await
++    }
++
++    async fn get_scheduled_agent_history(
++        &self,
++        schedule_id: &str,
++    ) -> anyhow::Result<ScheduledAgentHistory, anyhow::Error> {
++        self.inner.get_scheduled_agent_history(schedule_id).await
++    }
++
++    async fn get_ai_conversation(
++        &self,
++        server_conversation_token: ServerConversationToken,
++    ) -> anyhow::Result<(ConversationData, ServerAIConversationMetadata), anyhow::Error> {
++        self.inner
++            .get_ai_conversation(server_conversation_token)
++            .await
++    }
++
++    async fn list_ai_conversation_metadata(
++        &self,
++        conversation_ids: Option<Vec<String>>,
++    ) -> anyhow::Result<Vec<ServerAIConversationMetadata>> {
++        self.inner
++            .list_ai_conversation_metadata(conversation_ids)
++            .await
++    }
++
++    async fn get_ai_conversation_format(
++        &self,
++        server_conversation_token: ServerConversationToken,
++    ) -> anyhow::Result<AIAgentConversationFormat, anyhow::Error> {
++        self.inner
++            .get_ai_conversation_format(server_conversation_token)
++            .await
++    }
++
++    async fn get_block_snapshot(
++        &self,
++        server_conversation_token: ServerConversationToken,
++    ) -> anyhow::Result<SerializedBlock, anyhow::Error> {
++        self.inner
++            .get_block_snapshot(server_conversation_token)
++            .await
++    }
++
++    async fn delete_ai_conversation(
++        &self,
++        server_conversation_token: String,
++    ) -> anyhow::Result<(), anyhow::Error> {
++        self.inner
++            .delete_ai_conversation(server_conversation_token)
++            .await
++    }
++
++    async fn list_agents(
++        &self,
++        repo: Option<String>,
++    ) -> anyhow::Result<Vec<AgentListItem>, anyhow::Error> {
++        self.inner.list_agents(repo).await
++    }
++
++    async fn cancel_ambient_agent_task(
++        &self,
++        task_id: &AmbientAgentTaskId,
++    ) -> anyhow::Result<(), anyhow::Error> {
++        self.inner.cancel_ambient_agent_task(task_id).await
++    }
++
++    async fn get_task_git_credentials(
++        &self,
++        task_id: String,
++        workload_token: String,
++    ) -> anyhow::Result<Vec<GitCredential>, anyhow::Error> {
++        self.inner
++            .get_task_git_credentials(task_id, workload_token)
++            .await
++    }
++
++    async fn get_task_attachments(
++        &self,
++        task_id: String,
++    ) -> anyhow::Result<Vec<TaskAttachment>, anyhow::Error> {
++        self.inner.get_task_attachments(task_id).await
++    }
++
++    async fn create_file_artifact_upload_target(
++        &self,
++        request: CreateFileArtifactUploadRequest,
++    ) -> anyhow::Result<CreateFileArtifactUploadResponse, anyhow::Error> {
++        self.inner.create_file_artifact_upload_target(request).await
++    }
++
++    async fn confirm_file_artifact_upload(
++        &self,
++        artifact_uid: String,
++        checksum: String,
++    ) -> anyhow::Result<FileArtifactRecord, anyhow::Error> {
++        self.inner
++            .confirm_file_artifact_upload(artifact_uid, checksum)
++            .await
++    }
++
++    async fn get_artifact_download(
++        &self,
++        artifact_uid: &str,
++    ) -> anyhow::Result<ArtifactDownloadResponse, anyhow::Error> {
++        self.inner.get_artifact_download(artifact_uid).await
++    }
++
++    async fn prepare_attachments_for_upload(
++        &self,
++        task_id: &AmbientAgentTaskId,
++        files: &[AttachmentFileInfo],
++    ) -> anyhow::Result<PrepareAttachmentUploadsResponse, anyhow::Error> {
++        self.inner
++            .prepare_attachments_for_upload(task_id, files)
++            .await
++    }
++
++    async fn download_task_attachments(
++        &self,
++        task_id: &AmbientAgentTaskId,
++        attachment_ids: &[String],
++    ) -> anyhow::Result<DownloadAttachmentsResponse, anyhow::Error> {
++        self.inner
++            .download_task_attachments(task_id, attachment_ids)
++            .await
++    }
++
++    async fn get_handoff_snapshot_attachments(
++        &self,
++        task_id: &AmbientAgentTaskId,
++    ) -> anyhow::Result<Vec<TaskAttachment>, anyhow::Error> {
++        self.inner.get_handoff_snapshot_attachments(task_id).await
++    }
++
++    async fn send_agent_message(
++        &self,
++        request: SendAgentMessageRequest,
++    ) -> anyhow::Result<SendAgentMessageResponse, anyhow::Error> {
++        self.inner.send_agent_message(request).await
++    }
++
++    async fn list_agent_messages(
++        &self,
++        run_id: &str,
++        request: ListAgentMessagesRequest,
++    ) -> anyhow::Result<Vec<AgentMessageHeader>, anyhow::Error> {
++        self.inner.list_agent_messages(run_id, request).await
++    }
++
++    async fn update_event_sequence_on_server(
++        &self,
++        run_id: &str,
++        sequence: i64,
++    ) -> anyhow::Result<(), anyhow::Error> {
++        self.inner
++            .update_event_sequence_on_server(run_id, sequence)
++            .await
++    }
++
++    async fn report_agent_event(
++        &self,
++        run_id: &str,
++        request: ReportAgentEventRequest,
++    ) -> anyhow::Result<ReportAgentEventResponse, anyhow::Error> {
++        self.inner.report_agent_event(run_id, request).await
++    }
++
++    async fn mark_message_delivered(&self, message_id: &str) -> anyhow::Result<(), anyhow::Error> {
++        self.inner.mark_message_delivered(message_id).await
++    }
++
++    async fn read_agent_message(
++        &self,
++        message_id: &str,
++    ) -> anyhow::Result<ReadAgentMessageResponse, anyhow::Error> {
++        self.inner.read_agent_message(message_id).await
++    }
++
++    async fn get_public_conversation(
++        &self,
++        conversation_id: &str,
++    ) -> anyhow::Result<serde_json::Value, anyhow::Error> {
++        self.inner.get_public_conversation(conversation_id).await
++    }
++
++    async fn get_run_conversation(
++        &self,
++        run_id: &str,
++    ) -> anyhow::Result<serde_json::Value, anyhow::Error> {
++        self.inner.get_run_conversation(run_id).await
++    }
++
++    async fn generate_code_review_content(
++        &self,
++        request: GenerateCodeReviewContentRequest,
++    ) -> Result<GenerateCodeReviewContentResponse, anyhow::Error> {
++        self.inner.generate_code_review_content(request).await
++    }
++}
+diff --git a/app/src/util/agent_backends.rs b/app/src/util/agent_backends.rs
+index 0a2bf050..0ccd26b8 100644
+--- a/app/src/util/agent_backends.rs
++++ b/app/src/util/agent_backends.rs
+@@ -47,6 +47,11 @@ pub struct Backend {
+     /// Optional — if empty, only the server URL is overridden.
+     #[serde(default)]
+     pub ws_url: String,
++    /// gRPC harness-host endpoint, e.g. `http://127.0.0.1:50061`. When set, the
++    /// in-process agent bridge ([`crate::server::server_api::ai::bridge`]) routes
++    /// agent operations to this host. Optional; empty = a plain URL-override backend.
++    #[serde(default)]
++    pub grpc_endpoint: String,
+ }
+ 
+ impl Backend {
+@@ -138,6 +143,17 @@ pub fn set_selected(id: &str) {
+     }
+ }
+ 
++/// The gRPC harness-host endpoint of the selected backend, if it defines one.
++/// Used by the in-process agent bridge to decide whether to route agent ops to a
++/// custom harness host. `None` for the built-in Warp backend or any backend
++/// without a `grpc_endpoint`.
++pub fn selected_grpc_endpoint() -> Option<String> {
++    load()
++        .selected_backend()
++        .map(|b| b.grpc_endpoint.clone())
++        .filter(|e| !e.is_empty())
++}
++
+ /// Applies the selected backend's URLs by overriding `ChannelState`. No-op for
+ /// the built-in Warp backend. Call this at startup BEFORE the server client,
+ /// GraphQL, or auth read the URLs.
