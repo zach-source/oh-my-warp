@@ -140,15 +140,15 @@ cmd_save() {
 
 cmd_sync() {
   ensure_clean
-  info "fetching $UPSTREAM_REMOTE…"
+  info "fetching ${UPSTREAM_REMOTE}…"
   git fetch -q "$UPSTREAM_REMOTE"
-  info "fast-forwarding mirror $MIRROR_BRANCH → $UPSTREAM_REMOTE/$UPSTREAM_BRANCH…"
+  info "fast-forwarding mirror ${MIRROR_BRANCH} → ${UPSTREAM_REMOTE}/${UPSTREAM_BRANCH}…"
   git checkout -q "$MIRROR_BRANCH"
   if ! git merge --ff-only "$UPSTREAM_REMOTE/$UPSTREAM_BRANCH"; then
     die "mirror '$MIRROR_BRANCH' diverged from upstream — it must stay a pristine mirror (never commit to it)."
   fi
   git checkout -q "$BASE_BRANCH"
-  info "merging $MIRROR_BRANCH into $BASE_BRANCH…"
+  info "merging ${MIRROR_BRANCH} into ${BASE_BRANCH}…"
   if ! git merge --no-edit "$MIRROR_BRANCH"; then
     die "unexpected merge conflict pulling upstream (overlay should be additive). Resolve, commit, then './omw apply'."
   fi
