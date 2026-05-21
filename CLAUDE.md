@@ -40,8 +40,8 @@ Upstream `flake.nix` is **Linux-only**, so use **devenv** (`devenv.nix` provides
 
 - **Always `./omw apply` before building** — otherwise you build `oh-my-warp` (or `master`) *without the patches applied* (the #1 mistake; the feature silently isn't there).
 - Type-check: `devenv shell -- cargo check -p warp --lib` (the app crate is `warp`, at `app/`). The wrapper's exit code is **not** cargo's — append `echo "CARGO_EXIT=$?"` to read the real result.
-- Full build + bundle (macOS): `devenv shell -- bash -lc 'export WARP_SKIP_COMMON_SKILLS_INSTALL=1; ./script/run --dont-open'` → `target/debug/bundle/osx/WarpOss.app`.
-- **Launch the built app from Finder/launchd** (the `~/Desktop/WarpOss Dev` launcher), **not** from the devenv/Claude shell — see gotcha #5.
+- Full build + bundle (macOS): `devenv shell -- bash -lc 'export WARP_SKIP_COMMON_SKILLS_INSTALL=1; ./script/run --dont-open'` → `target/debug/bundle/osx/oh-my-warp.app` (rebranded by patch 0008; upstream's name is `WarpOss.app`).
+- **Launch the built app from Finder/launchd** (the `~/Desktop/oh-my-warp Dev` launcher, which must point at `…/bundle/osx/oh-my-warp.app`), **not** from the devenv/Claude shell — see gotcha #5.
 - Tests & lint: see `WARP.md` (`cargo nextest run …`, `cargo test -p <crate>`, `./script/presubmit`). A `PostToolUse` `smart-lint` hook **blocks edits with rustfmt issues** — run `rustfmt --edition 2021 <file>` (or `cargo fmt`) after editing Rust.
 
 ## Gotchas we hit (and the fixes)

@@ -13,7 +13,7 @@ git clone git@github.com:zach-source/oh-my-warp.git && cd oh-my-warp
 git remote add upstream https://github.com/warpdotdev/warp.git && git fetch upstream
 devenv shell                 # pinned Rust toolchain + build deps (upstream flake.nix is Linux-only)
 ./omw apply                  # apply the patch series onto pristine upstream
-./script/run --dont-open     # build + bundle target/debug/bundle/osx/WarpOss.app
+./script/run --dont-open     # build + bundle target/debug/bundle/osx/oh-my-warp.app
 # then launch the built app from Finder/launchd (not from the devenv shell)
 ```
 
