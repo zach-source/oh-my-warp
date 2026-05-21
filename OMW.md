@@ -77,7 +77,7 @@ to refresh the stored patch.
 
 ## Remotes
 
-- `origin`   → your fork (`zach-source/warp`) — push here.
+- `origin`   → your fork (`zach-source/oh-my-warp`) — push here.
 - `upstream` → `warpdotdev/warp` — fetch only (push is disabled).
 
 ## Licensing

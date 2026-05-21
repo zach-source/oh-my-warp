@@ -9,7 +9,7 @@ This is a customization layer, not a soft fork that drifts. Upstream code under 
 
 ### Quick start (macOS)
 ```bash
-git clone git@github.com:zach-source/warp.git && cd warp
+git clone git@github.com:zach-source/oh-my-warp.git && cd oh-my-warp
 git remote add upstream https://github.com/warpdotdev/warp.git && git fetch upstream
 devenv shell                 # pinned Rust toolchain + build deps (upstream flake.nix is Linux-only)
 ./omw apply                  # apply the patch series onto pristine upstream

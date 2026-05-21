@@ -26,7 +26,7 @@ Driven by `./omw` (`status` · `list` · `apply` · `save` · `sync`):
 1. `./omw apply` — rebuilds the throwaway `omw/applied` branch = `oh-my-warp` + every patch (via `git am`), and leaves you on it. **Requires a clean working tree** — commit/stash any overlay changes on `oh-my-warp` first.
 2. Edit upstream files on `omw/applied`. **One logical change per commit** — the commit subject becomes the patch filename.
 3. `./omw save` — regenerates `patches/` + `patches/series` from those commits, commits them on `oh-my-warp`, and returns the tree to pristine.
-4. `git push` — publish to `origin` (`zach-source/warp`); `oh-my-warp` is the default branch. `upstream` is fetch-only.
+4. `git push` — publish to `origin` (`zach-source/oh-my-warp`); `oh-my-warp` is the default branch. `upstream` is fetch-only.
 5. `./omw sync` — `git fetch upstream` + fast-forward the `master` mirror + merge it into `oh-my-warp` (clean, additive) + re-apply patches.
 
 **Where new code goes:**
