@@ -16,7 +16,7 @@ Warp already has **three** extension tiers. Two are production-ready. The third 
 |---|---|---|---|---|
 | **1. Config** | themes · workflows · launch_configs · `keybindings.yaml` | YAML/JSON | files under `~/.config/warp/…`, read at runtime | ✅ live |
 | **2. MCP** (`crates/mcp`, rmcp 1.6) | AI tools / resources / prompts | *any* | `.mcp.json` → stdio/SSE child + JSON-RPC | ✅ live |
-| **3. JS plugin host** (`app/src/plugin/`) | in-app behavior | JavaScript (QuickJS) | `~/.warp/plugins/*/main.js` → subprocess | ✅ **enabled** (M0–M3: `warp.log`, `warp.commands`, `warp.terminal`, `warp.ui`, `warp.keymap`) |
+| **3. JS plugin host** (`app/src/plugin/`) | in-app behavior | JavaScript (QuickJS) | `~/.warp/plugins/*/main.js` (+ optional `plugin.json`) → subprocess | ✅ **enabled** (M0–M3 + M4 manifest/capabilities/AI tools: `warp.log`, `warp.commands`, `warp.terminal`, `warp.ui`, `warp.keymap`, `warp.ai`, `warp.plugin`) |
 | 2.5 gRPC agent bridge (oh-my-warp) | custom agent backends | any | `agent_backends.toml` ([BACKEND_INTERFACE.md](BACKEND_INTERFACE.md)) | overlay |
 
 **What you can do today:** add config, and add AI tools via MCP. **What you cannot do:** add a command, react to a command finishing, or draw anything. That is the entire gap, and tier 3 is purpose-built to close it.
@@ -314,9 +314,10 @@ Phased; each phase is independently shippable. **Code → patches** (edits to up
 - **Overlay:** example plugin adds a `warp.ui.toast` command and binds `greet.keybound` to the `ctrl-b h` leader chord.
 - **Verified:** running the toast command shows a toast; pressing `ctrl-b h` runs the bound command.
 
-### Phase 4 (M4) — manifest, declarative contributes, AI tools, richer UI, capabilities
-- **Patch:** `plugin.json` manifest + `engines.warp` enforcement + declarative `contributes` (commands / keybindings / themes / workflows) + Settings → Plugins list (status, permissions).
-- **Patch:** `warp.ai.registerTool` injecting into `MCPContext` (`ai/agent/api/convert_to.rs`); `warp.ui.showMarkdown`/`showPalette`; capability model (`fs`/`process`/`network`) with consent.
+### Phase 4 (M4) — manifest, declarative contributes, AI tools, richer UI, capabilities — 🚧 **in progress**
+- ✅ **Patch 0023:** `plugin.json` manifest parsing + `engines.warp` enforcement (incompatible plugins skipped with a logged reason) + capability/permission model gating `commands`/`terminal:events`/`ui`/`keymap` (`host/native/manifest.rs`, gated in `js_api/mod.rs`) + `warp.plugin.{id,dir}` context + declarative `contributes.keybindings`. A bare `main.js` (no manifest) stays fully back-compatible (legacy = all namespaces, any API version).
+- ✅ **Patch 0024:** `warp.ai.registerTool({name, description, schema, run})` — a plugin granted the `ai` permission exposes a tool the agent can call. Tools are injected into the model's MCP context as a synthetic server (`ai/agent/api.rs`) and dispatched **in-process** back to the plugin's `run` callback (`ai/blocklist/action_model/execute/call_mcp_tool.rs`) via `CallJsFunctionService`. Registry: `plugin/ai_tools.rs`; relay: `RegisterToolService`. JSON-string I/O (`run(argsJson) -> string`).
+- ⏳ **Remaining:** declarative `contributes.commands` (palette listing + lazy activation) and `themes`/`workflows` (route into tier-1 loaders); Settings → Plugins list (status, permissions); `warp.ui.showMarkdown`/`showPalette`; high-sensitivity capabilities `fs`/`process`/`network` with first-use consent.
 
 ---
 

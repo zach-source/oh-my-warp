@@ -14,12 +14,18 @@
 //   • warp.terminal.onCommandFinished(cb)   — cb({ command, exitCode, cwd, durationMs })
 //   • warp.ui.toast(message, kind?)         — kind is "info" (default) | "warn" | "error"
 //   • warp.keymap.bind(commandId, keys)     — bind a key sequence to a command
+//   • warp.ai.registerTool({name, description, schema, run})  — expose a tool the AI agent can call
+//   • warp.plugin.{id,dir}                  — this plugin's id and directory
+//
+// Capabilities (manifest `permissions`) and the `ctrl-b j` keybinding are declared in plugin.json.
 //
 // Log lines are relayed from the host to the app and land in Warp's normal log
 // output (~/Library/Logs/warp-oss.log on macOS).
 
 export function activate(warp) {
-  warp.log(`hello from oh-my-warp! (warp.* API v${warp.version})`);
+  warp.log(
+    `hello from oh-my-warp! (warp.* API v${warp.version}, plugin ${warp.plugin.id})`,
+  );
 
   // --- Command palette commands (M1) -------------------------------------
   warp.commands.register("greet.hello", "Greet: Say Hello", () => {
@@ -64,5 +70,26 @@ export function activate(warp) {
     if (e.durationMs >= 3000) {
       return `⏱ "${e.command}" took ${Math.round(e.durationMs / 1000)}s`;
     }
+  });
+
+  // --- AI agent tool via warp.ai.registerTool (M4) -----------------------
+  // The agent can call this tool. `schema` is a JSON Schema *string*; `run` receives the model's
+  // arguments as a JSON string and returns a string result. Requires the "ai" permission.
+  warp.ai.registerTool({
+    name: "greet_lookup",
+    description:
+      "Returns a friendly oh-my-warp greeting for a given name. Use when asked to greet someone.",
+    schema: JSON.stringify({
+      type: "object",
+      properties: {
+        name: { type: "string", description: "The name to greet" },
+      },
+      required: ["name"],
+    }),
+    run: (argsJson) => {
+      const args = JSON.parse(argsJson || "{}");
+      warp.log(`greet_lookup tool called for ${args.name}`);
+      return `👋 Hello, ${args.name || "stranger"}! (greeting from the oh-my-warp plugin)`;
+    },
   });
 }
