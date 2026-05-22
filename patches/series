@@ -28,3 +28,7 @@
 0026-Add-warp.fs-warp.process-warp.network-capabilities-p.patch
 0027-Add-warp.ui.showMarkdown-render-plugin-markdown-in-a.patch
 0028-Add-warp.ui.showPalette-plugin-driven-picker-running.patch
+0029-Add-FrameImage-element-StaticImage-from_rgba-for-liv.patch
+0030-Add-embedded-browser-CDP-screencast-input-session-Br.patch
+0031-Wire-BrowserPane-into-the-pane-tree-persistence-and-.patch
+0032-Add-browser-open-paths-leader-ctrl-b-w-right-click-L.patch

@@ -1,7 +1,7 @@
-From 73464cc0b97d0e4f74ca229ded65fb57ff9ddafb Mon Sep 17 00:00:00 2001
+From 26197d4aeed5485dcc2332d2650bd192772a95d7 Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Thu, 21 May 2026 10:57:51 -0400
-Subject: [PATCH 16/28] Fix plugin host launch flag so the host actually starts
+Subject: [PATCH 16/32] Fix plugin host launch flag so the host actually starts
  (oh-my-warp)
 
 PLUGIN_HOST_FLAG was "--plugin_host" (underscore) but the clap parser for

@@ -1,7 +1,7 @@
-From 3e105fc0272955cede5175b7c191cfeb5ad5af6d Mon Sep 17 00:00:00 2001
+From d4b57b101b915744260187d9d9e913c9531dc253 Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Thu, 21 May 2026 23:05:19 -0400
-Subject: [PATCH 26/28] Add warp.fs / warp.process / warp.network capabilities
+Subject: [PATCH 26/32] Add warp.fs / warp.process / warp.network capabilities
  (permission-gated) (oh-my-warp)
 
 ---
