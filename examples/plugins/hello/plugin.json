@@ -5,7 +5,7 @@
   "engines": { "warp": "^1.0" },
   "main": "main.js",
   "description": "oh-my-warp sample: commands, terminal events, toasts, and keybindings.",
-  "permissions": ["ui", "commands", "terminal:events", "ai"],
+  "permissions": ["ui", "commands", "terminal:events", "ai", "process", "fs:read"],
   "activationEvents": ["onStartup"],
   "contributes": {
     "keybindings": [{ "command": "greet.hello", "key": "ctrl-b j" }]

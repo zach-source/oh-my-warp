@@ -15,6 +15,9 @@
 //   • warp.ui.toast(message, kind?)         — kind is "info" (default) | "warn" | "error"
 //   • warp.keymap.bind(commandId, keys)     — bind a key sequence to a command
 //   • warp.ai.registerTool({name, description, schema, run})  — expose a tool the AI agent can call
+//   • warp.fs.readFile/readDir/writeFile    — capability-gated file access (fs:read / fs:write)
+//   • warp.process.exec(cmd, args?)         — capability-gated subprocess (process)
+//   • warp.network.fetch(url)               — capability-gated HTTP GET (network)
 //   • warp.plugin.{id,dir}                  — this plugin's id and directory
 //
 // Capabilities (manifest `permissions`) and the `ctrl-b j` keybinding are declared in plugin.json.
@@ -92,4 +95,20 @@ export function activate(warp) {
       return `👋 Hello, ${args.name || "stranger"}! (greeting from the oh-my-warp plugin)`;
     },
   });
+
+  // --- High-sensitivity capabilities via warp.process / warp.fs (M4) ------
+  // Granted by the "process" and "fs:read" permissions in plugin.json. Without the grant the
+  // namespace is absent and these calls would throw — that's the capability boundary.
+  warp.commands.register(
+    "greet.sysinfo",
+    "Greet: System Info (warp.process + warp.fs)",
+    () => {
+      const { stdout, code } = warp.process.exec("uname", ["-sr"]);
+      const files = warp.fs.readDir(warp.plugin.dir);
+      warp.log(
+        `greet.sysinfo: uname exited ${code}, plugin dir has ${files.length} entries`,
+      );
+      return `🖥️ ${stdout.trim()} · ${files.length} files in plugin dir`;
+    },
+  );
 }
