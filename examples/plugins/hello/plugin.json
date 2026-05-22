@@ -4,6 +4,10 @@
   "version": "1.0.0",
   "engines": { "warp": "^1.0" },
   "main": "main.js",
-  "description": "Phase 0 sample: logs through the plugin host on startup.",
-  "activationEvents": ["onStartup"]
+  "description": "oh-my-warp sample: commands, terminal events, toasts, and keybindings.",
+  "permissions": ["ui", "commands", "terminal:events"],
+  "activationEvents": ["onStartup"],
+  "contributes": {
+    "keybindings": [{ "command": "greet.hello", "key": "ctrl-b j" }]
+  }
 }
