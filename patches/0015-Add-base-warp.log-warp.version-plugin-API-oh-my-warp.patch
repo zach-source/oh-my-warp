@@ -1,7 +1,7 @@
-From 39ae19961a5cb5643c3f29da1df4ebacaf30be4c Mon Sep 17 00:00:00 2001
+From 4d4a42122c34ba87930c11922547143e73357db3 Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Thu, 21 May 2026 10:19:05 -0400
-Subject: [PATCH 15/22] Add base warp.log/warp.version plugin API (oh-my-warp)
+Subject: [PATCH 15/23] Add base warp.log/warp.version plugin API (oh-my-warp)
 
 Expose warp.version (the warp.* API semver, PLUGIN_API_VERSION) and
 warp.log(message, level?) to every plugin, independent of completions_v2. This

@@ -1,7 +1,7 @@
-From 4c065d69b82a690b77a92d7047223b47307ff5d8 Mon Sep 17 00:00:00 2001
+From a086e9a8151afd1f8a9c1b99f364d8d5859a2cc7 Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Thu, 21 May 2026 08:38:00 -0400
-Subject: [PATCH 13/22] Disable Sentry crash-reporting egress (oh-my-warp)
+Subject: [PATCH 13/23] Disable Sentry crash-reporting egress (oh-my-warp)
 
 Force an empty DSN in sentry_client_options() so the Sentry Rust SDK and the
 minidump server initialize disabled and never transmit crash reports/errors.

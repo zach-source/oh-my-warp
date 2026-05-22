@@ -1,7 +1,7 @@
-From d9712fbe48e20fa7d58d144defb766c0f79981df Mon Sep 17 00:00:00 2001
+From 1bc3fbb31b551411994410aafb07677cd0d9a106 Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Thu, 21 May 2026 11:37:28 -0400
-Subject: [PATCH 18/22] Surface plugin commands in the command palette + run
+Subject: [PATCH 18/23] Surface plugin commands in the command palette + run
  with toast (oh-my-warp)
 
 A PluginCommandDataSource reads the plugin command registry and yields synthetic
