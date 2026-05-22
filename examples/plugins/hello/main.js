@@ -111,4 +111,33 @@ export function activate(warp) {
       return `🖥️ ${stdout.trim()} · ${files.length} files in plugin dir`;
     },
   );
+
+  // --- Richer UI: warp.ui.showMarkdown / warp.ui.showPalette (M4) ----------
+  // Both run under the "ui" permission. showMarkdown renders a markdown panel; showPalette shows a
+  // picker whose chosen item's onSelect callback runs in the plugin.
+  warp.commands.register("greet.docs", "Greet: Show Docs (markdown)", () => {
+    warp.ui.showMarkdown(
+      "Hello Plugin",
+      "# Hello from oh-my-warp\n\n" +
+        "This panel is **markdown** rendered by `warp.ui.showMarkdown`.\n\n" +
+        "- commands, terminal events, toasts\n" +
+        "- an AI tool (`greet_lookup`)\n" +
+        "- `warp.process` / `warp.fs`\n",
+    );
+  });
+
+  warp.commands.register(
+    "greet.menu",
+    "Greet: Pick a Greeting (palette)",
+    () => {
+      warp.ui.showPalette("Pick a greeting", [
+        { label: "👋 Wave", onSelect: () => warp.ui.toast("👋 Wave!") },
+        { label: "🫡 Salute", onSelect: () => warp.ui.toast("🫡 Salute!") },
+        {
+          label: "🎉 Celebrate",
+          onSelect: () => warp.ui.toast("🎉 Celebrate!"),
+        },
+      ]);
+    },
+  );
 }
