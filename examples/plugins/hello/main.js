@@ -114,7 +114,7 @@ export function activate(warp) {
 
   // --- Richer UI: warp.ui.showMarkdown / warp.ui.showPalette (M4) ----------
   // Both run under the "ui" permission. showMarkdown renders a markdown panel; showPalette shows a
-  // picker whose chosen item's onSelect callback runs in the plugin.
+  // picker whose items reference *commands* (run when picked).
   warp.commands.register("greet.docs", "Greet: Show Docs (markdown)", () => {
     warp.ui.showMarkdown(
       "Hello Plugin",
@@ -126,17 +126,25 @@ export function activate(warp) {
     );
   });
 
+  // showPalette items reference commands registered here (not inline callbacks): the picked
+  // command is run as a fresh invocation, which keeps the plugin host out of a re-entrant borrow.
+  warp.commands.register("greet.wave", "Greet: Wave", () =>
+    warp.ui.toast("👋 Wave!"),
+  );
+  warp.commands.register("greet.salute", "Greet: Salute", () =>
+    warp.ui.toast("🫡 Salute!"),
+  );
+  warp.commands.register("greet.celebrate", "Greet: Celebrate", () =>
+    warp.ui.toast("🎉 Celebrate!"),
+  );
   warp.commands.register(
     "greet.menu",
     "Greet: Pick a Greeting (palette)",
     () => {
       warp.ui.showPalette("Pick a greeting", [
-        { label: "👋 Wave", onSelect: () => warp.ui.toast("👋 Wave!") },
-        { label: "🫡 Salute", onSelect: () => warp.ui.toast("🫡 Salute!") },
-        {
-          label: "🎉 Celebrate",
-          onSelect: () => warp.ui.toast("🎉 Celebrate!"),
-        },
+        { label: "👋 Wave", command: "greet.wave" },
+        { label: "🫡 Salute", command: "greet.salute" },
+        { label: "🎉 Celebrate", command: "greet.celebrate" },
       ]);
     },
   );
