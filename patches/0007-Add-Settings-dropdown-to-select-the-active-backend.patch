@@ -1,4 +1,4 @@
-From eb8be18af9180f10f371c4680676c6bf1a243da8 Mon Sep 17 00:00:00 2001
+From d556d4e903eb4fa0186080141cc26eaa000a804a Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Wed, 20 May 2026 13:03:05 -0400
 Subject: [PATCH 07/28] Add Settings dropdown to select the active backend

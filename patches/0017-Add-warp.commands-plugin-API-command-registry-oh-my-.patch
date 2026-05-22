@@ -1,4 +1,4 @@
-From 18d6bcbf67e94870fac45495cd15632f702905be Mon Sep 17 00:00:00 2001
+From 37b7519ebd5dd8cdbfef5f5e63cd4986789faf34 Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Thu, 21 May 2026 11:37:28 -0400
 Subject: [PATCH 17/28] Add warp.commands plugin API + command registry

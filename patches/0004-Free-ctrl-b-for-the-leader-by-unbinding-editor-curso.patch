@@ -1,4 +1,4 @@
-From 5ef1c558fd6e10c5efd39c9940978699894f76d8 Mon Sep 17 00:00:00 2001
+From 5e96f3c2279b246fd4219bfeabb14837da3c17c6 Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Wed, 20 May 2026 12:29:16 -0400
 Subject: [PATCH 04/28] Free ctrl-b for the leader by unbinding editor

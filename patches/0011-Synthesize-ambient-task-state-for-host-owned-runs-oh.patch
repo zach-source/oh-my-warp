@@ -1,4 +1,4 @@
-From 8e34e4016c15510bde10c22d83d784c9aeaac24f Mon Sep 17 00:00:00 2001
+From becbfda4e13500ca6dab9ad78d3b979834a326c6 Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Thu, 21 May 2026 00:06:01 -0400
 Subject: [PATCH 11/28] Synthesize ambient task state for host-owned runs
