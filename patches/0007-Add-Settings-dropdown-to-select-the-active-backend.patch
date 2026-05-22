@@ -1,7 +1,7 @@
-From a190b069a1d706adbef48799191dfe03c9b33f01 Mon Sep 17 00:00:00 2001
+From a38a482075d8a161a3dc6115a4e93bce79898919 Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Wed, 20 May 2026 13:03:05 -0400
-Subject: [PATCH 07/25] Add Settings dropdown to select the active backend
+Subject: [PATCH 07/26] Add Settings dropdown to select the active backend
 
 BackendSelectorView (a Dropdown mirroring StartupShellView) lists 'Warp
 (Default)' + the configured backends and persists the choice via
