@@ -1,7 +1,7 @@
-From 97f1f62a9042c40b7f30c48f7f5a77588369e747 Mon Sep 17 00:00:00 2001
+From 4024c872d1eb6c9b6606aefac6c56ee67a04fb04 Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Thu, 21 May 2026 16:42:15 -0400
-Subject: [PATCH 21/26] Fix plugin host crash from blocking IPC in
+Subject: [PATCH 21/28] Fix plugin host crash from blocking IPC in
  warp.ui.toast/keymap.bind (oh-my-warp)
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8

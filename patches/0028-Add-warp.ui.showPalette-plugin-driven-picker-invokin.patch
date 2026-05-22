@@ -1,0 +1,393 @@
+From a4f00d467076f95bd48f6b51e0562ebb731ac1ef Mon Sep 17 00:00:00 2001
+From: Zach Taylor <zctaylor.work@gmail.com>
+Date: Fri, 22 May 2026 00:11:24 -0400
+Subject: [PATCH 28/28] Add warp.ui.showPalette: plugin-driven picker invoking
+ item callbacks (oh-my-warp)
+
+---
+ app/src/plugin/app/mod.rs                     |  10 +-
+ app/src/plugin/app_requests.rs                |  14 +++
+ app/src/plugin/host/native/js_api/mod.rs      |  36 +++++-
+ app/src/workspace/view.rs                     |  62 ++++++++++
+ .../workspace/view/plugin_palette_modal.rs    | 115 ++++++++++++++++++
+ 5 files changed, 233 insertions(+), 4 deletions(-)
+ create mode 100644 app/src/workspace/view/plugin_palette_modal.rs
+
+diff --git a/app/src/plugin/app/mod.rs b/app/src/plugin/app/mod.rs
+index 55cfc82c..880d2e24 100644
+--- a/app/src/plugin/app/mod.rs
++++ b/app/src/plugin/app/mod.rs
+@@ -2,7 +2,7 @@ mod service_impl;
+ 
+ use std::sync::Arc;
+ 
+-use crate::plugin::app_requests::{PluginAppRequest, ToastKind};
++use crate::plugin::app_requests::{PalettePluginItem, PluginAppRequest, ToastKind};
+ use crate::view_components::{DismissibleToast, ToastFlavor};
+ use crate::workspace::{ToastStack, WorkspaceAction};
+ use anyhow::{Context, Result};
+@@ -173,6 +173,9 @@ impl PluginHost {
+                 // context to open the modal). See `workspace::view`.
+                 ctx.emit(PluginHostEvent::ShowMarkdown { title, markdown });
+             }
++            PluginAppRequest::ShowPalette { title, items } => {
++                ctx.emit(PluginHostEvent::ShowPalette { title, items });
++            }
+         }
+     }
+ }
+@@ -183,6 +186,11 @@ impl PluginHost {
+ pub enum PluginHostEvent {
+     /// Show a markdown panel (`warp.ui.showMarkdown`).
+     ShowMarkdown { title: String, markdown: String },
++    /// Show a picker; selecting an item invokes its callback (`warp.ui.showPalette`).
++    ShowPalette {
++        title: String,
++        items: Vec<PalettePluginItem>,
++    },
+ }
+ 
+ impl Drop for PluginHost {
+diff --git a/app/src/plugin/app_requests.rs b/app/src/plugin/app_requests.rs
+index 7724b1d5..09bf5c02 100644
+--- a/app/src/plugin/app_requests.rs
++++ b/app/src/plugin/app_requests.rs
+@@ -11,6 +11,15 @@ use std::sync::OnceLock;
+ 
+ use async_channel::{Receiver, Sender};
+ use serde::{Deserialize, Serialize};
++use warp_js::JsFunctionId;
++
++/// One entry of a plugin-driven picker (`warp.ui.showPalette`): a label plus the id of the JS
++/// `onSelect` callback to invoke (via `CallJsFunctionService`) when the user picks it.
++#[derive(Clone, Debug, Serialize, Deserialize)]
++pub struct PalettePluginItem {
++    pub label: String,
++    pub function_id: JsFunctionId,
++}
+ 
+ /// Severity of a toast requested via `warp.ui.toast`.
+ #[derive(Clone, Debug, Serialize, Deserialize, Default)]
+@@ -30,6 +39,11 @@ pub enum PluginAppRequest {
+     BindKey { keys: String, command_id: String },
+     /// Show a markdown panel (`warp.ui.showMarkdown`).
+     ShowMarkdown { title: String, markdown: String },
++    /// Show a picker; selecting an item invokes its callback (`warp.ui.showPalette`).
++    ShowPalette {
++        title: String,
++        items: Vec<PalettePluginItem>,
++    },
+ }
+ 
+ static SENDER: OnceLock<Sender<PluginAppRequest>> = OnceLock::new();
+diff --git a/app/src/plugin/host/native/js_api/mod.rs b/app/src/plugin/host/native/js_api/mod.rs
+index 23434bd0..324a6652 100644
+--- a/app/src/plugin/host/native/js_api/mod.rs
++++ b/app/src/plugin/host/native/js_api/mod.rs
+@@ -3,7 +3,7 @@ use rquickjs::{function::Opt, prelude::MutFn, Ctx, Function, Object};
+ use super::manifest::Manifest;
+ use super::plugin::PluginHandle;
+ use crate::plugin::ai_tools::ToolOutput;
+-use crate::plugin::app_requests::{PluginAppRequest, ToastKind};
++use crate::plugin::app_requests::{PalettePluginItem, PluginAppRequest, ToastKind};
+ use crate::plugin::events::{
+     CommandFinishedEvent, CommandStartedEvent, OptionalToast, EVENT_COMMAND_FINISHED,
+     EVENT_COMMAND_STARTED,
+@@ -72,7 +72,7 @@ pub fn warp<'js>(
+         api.set("terminal", terminal(plugin.clone(), ctx)?)?;
+     }
+     if manifest.permits("ui") {
+-        api.set("ui", ui(ctx)?)?;
++        api.set("ui", ui(plugin.clone(), ctx)?)?;
+     }
+     if manifest.permits("ai") {
+         api.set("ai", ai(plugin.clone(), ctx)?)?;
+@@ -257,7 +257,7 @@ fn network_api<'js>(ctx: Ctx<'js>) -> rquickjs::Result<Object<'js>> {
+ ///
+ /// The request is enqueued (non-blocking) and relayed to the app on a background task; we must not
+ /// do the blocking IPC inline on the plugin runner thread (see `super::app_request`).
+-fn ui<'js>(ctx: Ctx<'js>) -> rquickjs::Result<Object<'js>> {
++fn ui<'js>(plugin: PluginHandle, ctx: Ctx<'js>) -> rquickjs::Result<Object<'js>> {
+     let ui = Object::new(ctx)?;
+     ui.set(
+         "toast",
+@@ -279,6 +279,36 @@ fn ui<'js>(ctx: Ctx<'js>) -> rquickjs::Result<Object<'js>> {
+             });
+         }),
+     )?;
++    // `showPalette(title, items)` — `items` is `[{ label, onSelect }]`. Each `onSelect` is
++    // registered in the host; the app shows a picker and, on selection, invokes the chosen item's
++    // callback via `CallJsFunctionService`. See PLUGIN_SPEC.md (M4).
++    ui.set(
++        "showPalette",
++        Function::new(
++            ctx,
++            MutFn::from(move |title: String, items: Vec<Object<'js>>| {
++                let mut plugin = plugin.get_mut();
++                let palette_items: Vec<PalettePluginItem> = items
++                    .into_iter()
++                    .filter_map(|item| {
++                        let label: String = item.get("label").ok()?;
++                        let on_select = item.get::<_, Function>("onSelect").ok()?;
++                        let func_ref = plugin
++                            .js_function_registry_mut()
++                            .register_js_function::<String, OptionalToast>(on_select, ctx);
++                        Some(PalettePluginItem {
++                            label,
++                            function_id: func_ref.id,
++                        })
++                    })
++                    .collect();
++                super::app_request::send_app_request(PluginAppRequest::ShowPalette {
++                    title,
++                    items: palette_items,
++                });
++            }),
++        ),
++    )?;
+     Ok(ui)
+ }
+ 
+diff --git a/app/src/workspace/view.rs b/app/src/workspace/view.rs
+index f47d32e7..692161d6 100644
+--- a/app/src/workspace/view.rs
++++ b/app/src/workspace/view.rs
+@@ -12,6 +12,7 @@ pub(crate) mod onboarding;
+ pub(crate) mod openwarp_launch_modal;
+ pub(crate) mod orchestration_launch_modal;
+ mod plugin_markdown_modal;
++mod plugin_palette_modal;
+ pub(crate) mod right_panel;
+ mod startup_directory;
+ #[cfg(test)]
+@@ -492,6 +493,7 @@ use crate::workspace::view::orchestration_launch_modal::{
+     OrchestrationLaunchModal, OrchestrationLaunchModalEvent,
+ };
+ use crate::workspace::view::plugin_markdown_modal::PluginMarkdownModal;
++use crate::workspace::view::plugin_palette_modal::{PluginPaletteEvent, PluginPaletteModal};
+ use crate::workspace::view::right_panel::{RightPanelEvent, RightPanelView};
+ use crate::workspace::{ForkFromExchange, ForkedConversationDestination};
+ use crate::workspaces::user_workspaces::UserWorkspaces;
+@@ -982,6 +984,8 @@ pub struct Workspace {
+     new_worktree_modal: ModalViewState<Modal<NewWorktreeModal>>,
+     // oh-my-warp: modal that renders markdown a plugin requested via `warp.ui.showMarkdown` (M4).
+     plugin_markdown_modal: ModalViewState<Modal<PluginMarkdownModal>>,
++    // oh-my-warp: picker a plugin requested via `warp.ui.showPalette` (M4).
++    plugin_palette_modal: ModalViewState<Modal<PluginPaletteModal>>,
+     close_session_confirmation_dialog: ViewHandle<CloseSessionConfirmationDialog>,
+     rewind_confirmation_dialog: ViewHandle<RewindConfirmationDialog>,
+     delete_conversation_confirmation_dialog: ViewHandle<DeleteConversationConfirmationDialog>,
+@@ -1962,6 +1966,54 @@ impl Workspace {
+         ctx.notify();
+     }
+ 
++    // oh-my-warp: builds the picker modal for `warp.ui.showPalette`.
++    fn build_plugin_palette_modal(
++        ctx: &mut ViewContext<Self>,
++    ) -> ModalViewState<Modal<PluginPaletteModal>> {
++        let body = ctx.add_typed_action_view(PluginPaletteModal::new);
++        ctx.subscribe_to_view(&body, |me, _, event, ctx| match event {
++            PluginPaletteEvent::Dismiss => {
++                me.plugin_palette_modal.close();
++                ctx.notify();
++            }
++        });
++        let modal = ctx.add_typed_action_view(|ctx| {
++            Modal::new(Some("Plugin".to_string()), body, ctx)
++                .with_dismiss_on_click()
++                .with_modal_style(UiComponentStyles {
++                    width: Some(420.),
++                    height: Some(480.),
++                    ..Default::default()
++                })
++        });
++        ctx.subscribe_to_view(&modal, |me, _, event, ctx| {
++            if matches!(event, ModalEvent::Close) {
++                me.plugin_palette_modal.close();
++                ctx.notify();
++            }
++        });
++        ModalViewState::new(modal)
++    }
++
++    /// Opens the picker modal with the given title/items (`warp.ui.showPalette`, M4).
++    #[cfg(feature = "plugin_host")]
++    fn show_plugin_palette(
++        &mut self,
++        title: String,
++        items: Vec<crate::plugin::app_requests::PalettePluginItem>,
++        ctx: &mut ViewContext<Self>,
++    ) {
++        self.plugin_palette_modal.view.update(ctx, |modal, ctx| {
++            modal.set_title(Some(title));
++            modal.body().update(ctx, |body, ctx| {
++                body.set_items(items, ctx);
++            });
++        });
++        self.plugin_palette_modal.open();
++        ctx.focus(&self.plugin_palette_modal.view);
++        ctx.notify();
++    }
++
+     /// Subscribes to [`crate::plugin::PluginHostEvent`]s so plugin UI requests can open
+     /// workspace-owned surfaces (e.g. the markdown modal). See PLUGIN_SPEC.md (M4).
+     #[cfg(feature = "plugin_host")]
+@@ -1971,6 +2023,9 @@ impl Workspace {
+             crate::plugin::PluginHostEvent::ShowMarkdown { title, markdown } => {
+                 me.show_plugin_markdown(title.clone(), markdown.clone(), ctx);
+             }
++            crate::plugin::PluginHostEvent::ShowPalette { title, items } => {
++                me.show_plugin_palette(title.clone(), items.clone(), ctx);
++            }
+         });
+     }
+ 
+@@ -2787,6 +2842,7 @@ impl Workspace {
+         let tab_config_params_modal = Self::build_tab_config_params_modal(ctx);
+         let new_worktree_modal = Self::build_new_worktree_modal(ctx);
+         let plugin_markdown_modal = Self::build_plugin_markdown_modal(ctx);
++        let plugin_palette_modal = Self::build_plugin_palette_modal(ctx);
+ 
+         let session_config_modal = Self::build_session_config_modal(ctx);
+ 
+@@ -3174,6 +3230,7 @@ impl Workspace {
+             pending_session_config_tab_config_chip_tutorial: None,
+             new_worktree_modal,
+             plugin_markdown_modal,
++            plugin_palette_modal,
+             close_session_confirmation_dialog,
+             rewind_confirmation_dialog,
+             delete_conversation_confirmation_dialog,
+@@ -24063,6 +24120,11 @@ impl View for Workspace {
+             stack.add_child(self.plugin_markdown_modal.render());
+         }
+ 
++        // oh-my-warp: plugin picker modal (`warp.ui.showPalette`, M4).
++        if self.plugin_palette_modal.is_open() {
++            stack.add_child(self.plugin_palette_modal.render());
++        }
++
+         if self.workflow_modal.as_ref(app).is_open() {
+             stack.add_child(ChildView::new(&self.workflow_modal).finish());
+         }
+diff --git a/app/src/workspace/view/plugin_palette_modal.rs b/app/src/workspace/view/plugin_palette_modal.rs
+new file mode 100644
+index 00000000..a6d5ac1e
+--- /dev/null
++++ b/app/src/workspace/view/plugin_palette_modal.rs
+@@ -0,0 +1,115 @@
++//! oh-my-warp: picker modal body for `warp.ui.showPalette`. Renders one clickable row per item;
++//! selecting a row invokes that item's `onSelect` callback (via `CallJsFunctionService`) and emits
++//! [`PluginPaletteEvent::Dismiss`] so the `Workspace` closes the modal. See PLUGIN_SPEC.md (M4).
++
++use warp_js::SerializedJsValue;
++use warpui::elements::{Container, Element, Flex, MouseStateHandle, ParentElement};
++use warpui::platform::Cursor;
++use warpui::ui_components::button::ButtonVariant;
++use warpui::ui_components::components::{UiComponent, UiComponentStyles};
++use warpui::{AppContext, Entity, SingletonEntity, TypedActionView, View, ViewContext};
++
++use crate::appearance::Appearance;
++use crate::plugin::app_requests::PalettePluginItem;
++use crate::plugin::service::{CallJsFunctionRequest, CallJsFunctionService};
++use crate::plugin::PluginHost;
++
++/// Emitted when the user picks an item, so the `Workspace` can close the modal.
++#[derive(Debug, PartialEq, Eq)]
++pub enum PluginPaletteEvent {
++    Dismiss,
++}
++
++/// Dispatched by a row's click handler with the index of the chosen item.
++#[derive(Debug)]
++pub enum PluginPaletteAction {
++    Select(usize),
++}
++
++pub struct PluginPaletteModal {
++    items: Vec<PalettePluginItem>,
++    button_states: Vec<MouseStateHandle>,
++}
++
++impl PluginPaletteModal {
++    pub fn new(_ctx: &mut ViewContext<Self>) -> Self {
++        Self {
++            items: Vec::new(),
++            button_states: Vec::new(),
++        }
++    }
++
++    /// Replaces the picker's items (one clickable row each). Call before opening the modal.
++    pub fn set_items(&mut self, items: Vec<PalettePluginItem>, ctx: &mut ViewContext<Self>) {
++        self.button_states = items.iter().map(|_| MouseStateHandle::default()).collect();
++        self.items = items;
++        ctx.notify();
++    }
++}
++
++impl Entity for PluginPaletteModal {
++    type Event = PluginPaletteEvent;
++}
++
++impl TypedActionView for PluginPaletteModal {
++    type Action = PluginPaletteAction;
++
++    fn handle_action(&mut self, action: &Self::Action, ctx: &mut ViewContext<Self>) {
++        match action {
++            PluginPaletteAction::Select(index) => {
++                if let Some(item) = self.items.get(*index) {
++                    let function_id = item.function_id;
++                    if let Some(caller) = PluginHost::handle(ctx)
++                        .as_ref(ctx)
++                        .plugin_service_caller::<CallJsFunctionService>()
++                    {
++                        if let Ok(serialized_input) = SerializedJsValue::from_value(String::new()) {
++                            ctx.spawn(
++                                async move {
++                                    caller
++                                        .call(CallJsFunctionRequest {
++                                            id: function_id,
++                                            serialized_input,
++                                        })
++                                        .await
++                                },
++                                |_view, _response, _ctx| {},
++                            );
++                        }
++                    }
++                }
++                ctx.emit(PluginPaletteEvent::Dismiss);
++            }
++        }
++    }
++}
++
++impl View for PluginPaletteModal {
++    fn ui_name() -> &'static str {
++        "PluginPaletteModal"
++    }
++
++    fn render(&self, app: &AppContext) -> Box<dyn Element> {
++        let appearance = Appearance::as_ref(app);
++        let mut column = Flex::column();
++        for (index, (item, state)) in self.items.iter().zip(self.button_states.iter()).enumerate() {
++            let button = appearance
++                .ui_builder()
++                .button(ButtonVariant::Secondary, state.clone())
++                .with_style(UiComponentStyles {
++                    font_size: Some(14.),
++                    height: Some(36.),
++                    ..Default::default()
++                })
++                .with_centered_text_label(item.label.clone())
++                .build()
++                .with_cursor(Cursor::PointingHand)
++                .on_click(move |ctx, _, _| {
++                    ctx.dispatch_typed_action(PluginPaletteAction::Select(index))
++                })
++                .finish();
++            column.add_child(Container::new(button).with_margin_bottom(6.).finish());
++        }
++        column.finish()
++    }
++}

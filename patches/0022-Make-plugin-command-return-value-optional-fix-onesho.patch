@@ -1,7 +1,7 @@
-From d713c814e71b825b699b25999256358933660691 Mon Sep 17 00:00:00 2001
+From f3933e25d3c091d06eb14001897408a54ba6263d Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Thu, 21 May 2026 16:51:24 -0400
-Subject: [PATCH 22/26] Make plugin command return value optional (fix 'oneshot
+Subject: [PATCH 22/28] Make plugin command return value optional (fix 'oneshot
  cancelled') (oh-my-warp)
 
 warp.commands.register registered callbacks with output type String, so a command
