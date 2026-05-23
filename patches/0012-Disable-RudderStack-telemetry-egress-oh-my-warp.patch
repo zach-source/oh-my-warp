@@ -1,7 +1,7 @@
-From 47b5ffd29c3c721e1b4ac2ba40f0ed8982390fa8 Mon Sep 17 00:00:00 2001
+From 74740d9644e069b6b611b5bb0149849215bdb8bd Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Thu, 21 May 2026 08:36:18 -0400
-Subject: [PATCH 12/33] Disable RudderStack telemetry egress (oh-my-warp)
+Subject: [PATCH 12/34] Disable RudderStack telemetry egress (oh-my-warp)
 
 Neuter the single network chokepoint (send_rudder_request) so no telemetry
 events are ever transmitted to RudderStack. Events may still be queued
