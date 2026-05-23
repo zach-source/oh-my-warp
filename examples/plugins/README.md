@@ -23,6 +23,10 @@ grep -r "hello from oh-my-warp" ~/Library/Logs/
 
 You should see the `activate()` output relayed from the host via the IPC `LogService`.
 
+## `agent-browser/` — AI agent browser control
+
+Exposes [`vercel-labs/agent-browser`](https://github.com/vercel-labs/agent-browser) as AI agent tools (`warp.ai.registerTool`), so the agent can drive a real browser: open pages, snapshot the accessibility tree, click, type, read, and screenshot. Requires the `agent-browser` CLI (`brew install agent-browser && agent-browser install`). See [`agent-browser/README.md`](agent-browser/README.md). Install the same way as `hello` (symlink into `~/.warp/plugins/`).
+
 ## What works today (Phases 0–3)
 
 - The host loads each plugin's **`main.js`** (compiled as an ES module) and calls **`export function activate(warp)`**.
@@ -32,4 +36,4 @@ You should see the `activate()` output relayed from the host via the IPC `LogSer
 - **`warp.ui.toast(message, kind?)`** — show a toast at any time (`kind`: `"info"` | `"warn"` | `"error"`). Try *"Greet: Toast (warp.ui.toast)"*.
 - **`warp.keymap.bind(commandId, keys)`** — bind a key sequence to a command. The `hello` plugin binds *"Greet: Keybound Hello"* to the **`ctrl-b h`** leader chord; the user's `keybindings.yaml` overrides it.
 
-The `plugin.json` manifest is included for forward-compatibility but is **not parsed yet** — manifest discovery, `engines.warp` enforcement, declarative `contributes`, and `warp.ai` arrive in M4. See [`PLUGIN_SPEC.md`](../../PLUGIN_SPEC.md).
+The `plugin.json` manifest is parsed: `engines.warp` is enforced and `permissions` gate capability namespaces. Beyond the base API above, plugins can use **`warp.ai.registerTool`** (expose AI agent tools), **`warp.fs`** / **`warp.process`** / **`warp.network`** (capability-gated), and **`warp.ui.showMarkdown`** / **`showPalette`** / **`openWebTab`**. See [`PLUGIN_SPEC.md`](../../PLUGIN_SPEC.md) and the `agent-browser` plugin for examples.
