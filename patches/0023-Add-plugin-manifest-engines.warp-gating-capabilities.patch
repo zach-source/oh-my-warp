@@ -1,7 +1,7 @@
-From b5671a30809662528ebdcff4a33533dd5d8a7bee Mon Sep 17 00:00:00 2001
+From 921b1019eb3def939d4dfbff5b0e2192fb07a818 Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Thu, 21 May 2026 21:01:13 -0400
-Subject: [PATCH 23/32] Add plugin manifest, engines.warp gating, capabilities,
+Subject: [PATCH 23/33] Add plugin manifest, engines.warp gating, capabilities,
  and contributes.keybindings (oh-my-warp)
 
 ---

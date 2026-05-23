@@ -1,7 +1,7 @@
-From 1354d6b97a94a8bed7926403e2b9e400e2821446 Mon Sep 17 00:00:00 2001
+From e35325d47313ad4a80816ee6dab59f690884c75b Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Fri, 22 May 2026 18:48:45 -0400
-Subject: [PATCH 29/32] Add FrameImage element + StaticImage::from_rgba for
+Subject: [PATCH 29/33] Add FrameImage element + StaticImage::from_rgba for
  live frame streams (oh-my-warp)
 
 ---
