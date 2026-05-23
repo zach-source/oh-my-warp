@@ -13,6 +13,7 @@
 //   • warp.terminal.onCommandStart(cb)     — cb({ command, cwd })
 //   • warp.terminal.onCommandFinished(cb)   — cb({ command, exitCode, cwd, durationMs })
 //   • warp.ui.toast(message, kind?)         — kind is "info" (default) | "warn" | "error"
+//   • warp.ui.openWebTab(url)               — open an embedded browser pane at url
 //   • warp.keymap.bind(commandId, keys)     — bind a key sequence to a command
 //   • warp.ai.registerTool({name, description, schema, run})  — expose a tool the AI agent can call
 //   • warp.fs.readFile/readDir/writeFile    — capability-gated file access (fs:read / fs:write)
@@ -146,6 +147,17 @@ export function activate(warp) {
         { label: "🫡 Salute", command: "greet.salute" },
         { label: "🎉 Celebrate", command: "greet.celebrate" },
       ]);
+    },
+  );
+
+  // --- Open a browser pane via warp.ui.openWebTab -------------------------
+  // Opens an embedded oh-my-warp browser pane navigated to the given URL (a bare
+  // host is upgraded to https://). Runs under the "ui" permission.
+  warp.commands.register(
+    "greet.web",
+    "Greet: Open Web Tab (example.com)",
+    () => {
+      warp.ui.openWebTab("https://example.com");
     },
   );
 }
