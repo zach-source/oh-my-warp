@@ -99,6 +99,46 @@ export function activate(warp) {
     });
   }
 
+  // --- User-facing commands (Cmd-P) ---------------------------------------
+  // Registered before the AI tools so the "Check CLI" command always appears,
+  // even if a tool registration ever fails.
+  warp.commands.register(
+    "agentBrowser.check",
+    "Agent Browser: Check CLI",
+    () => {
+      if (!cliAvailable()) {
+        warp.ui.toast("agent-browser CLI not installed", "error");
+        return INSTALL_HINT;
+      }
+      let ver = "(unknown)";
+      try {
+        ver = warp.process.exec(BIN, ["--version"]).stdout.trim();
+      } catch (_) {
+        /* ignore */
+      }
+      return `✅ agent-browser ready: ${ver}`;
+    },
+  );
+  warp.commands.register(
+    "agentBrowser.docs",
+    "Agent Browser: Tools & Usage",
+    () => {
+      warp.ui.showMarkdown(
+        "Agent Browser",
+        "# Agent Browser tools\n\n" +
+          "The AI agent can drive a real browser via these tools:\n\n" +
+          "- **browser_open** `{url}` — open a page\n" +
+          "- **browser_snapshot** `{interactiveOnly?}` — accessibility tree with refs (@e1…)\n" +
+          "- **browser_click / browser_type / browser_fill** `{target,…}` — act on a ref\n" +
+          "- **browser_press** `{key}`, **browser_back/forward/reload**\n" +
+          "- **browser_get_text / get_url / get_title**\n" +
+          "- **browser_wait_for** `{text?,ms?}`, **browser_screenshot** `{path?}`\n\n" +
+          "Backed by [`agent-browser`](https://github.com/vercel-labs/agent-browser) " +
+          "(a Rust CDP CLI). Install: `brew install agent-browser` then `agent-browser install`.",
+      );
+    },
+  );
+
   // --- Navigation ---------------------------------------------------------
   tool(
     "browser_open",
@@ -248,46 +288,6 @@ export function activate(warp) {
       a.path
         ? ["screenshot", String(a.path), "--json"]
         : ["screenshot", "--json"],
-  );
-
-  // --- User-facing commands (Cmd-P) ---------------------------------------
-  warp.commands.register(
-    "agentBrowser.check",
-    "Agent Browser: Check CLI",
-    () => {
-      if (!cliAvailable()) {
-        warp.ui.toast("agent-browser CLI not installed", "error");
-        return INSTALL_HINT;
-      }
-      const ver = (() => {
-        try {
-          return warp.process.exec(BIN, ["--version"]).stdout.trim();
-        } catch (_) {
-          return "(unknown)";
-        }
-      })();
-      return `✅ agent-browser ready: ${ver}`;
-    },
-  );
-
-  warp.commands.register(
-    "agentBrowser.docs",
-    "Agent Browser: Tools & Usage",
-    () => {
-      warp.ui.showMarkdown(
-        "Agent Browser",
-        "# Agent Browser tools\n\n" +
-          "The AI agent can drive a real browser via these tools:\n\n" +
-          "- **browser_open** `{url}` — open a page\n" +
-          "- **browser_snapshot** `{interactiveOnly?}` — accessibility tree with refs (@e1…)\n" +
-          "- **browser_click / browser_type / browser_fill** `{target,…}` — act on a ref\n" +
-          "- **browser_press** `{key}`, **browser_back/forward/reload**\n" +
-          "- **browser_get_text / get_url / get_title**\n" +
-          "- **browser_wait_for** `{text?,ms?}`, **browser_screenshot** `{path?}`\n\n" +
-          "Backed by [`agent-browser`](https://github.com/vercel-labs/agent-browser) " +
-          "(a Rust CDP CLI). Install: `brew install agent-browser` then `agent-browser install`.",
-      );
-    },
   );
 
   // Startup: log readiness and nudge if the CLI is missing (tools still register;
