@@ -1,7 +1,7 @@
-From 4f44114ce571e5df79302ff0e5d7cabb490f7055 Mon Sep 17 00:00:00 2001
+From 4536d0cc90a70c8869255834b8dd2b9eb04023f3 Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Thu, 21 May 2026 21:48:35 -0400
-Subject: [PATCH 24/34] Add warp.ai.registerTool: plugins expose in-process
+Subject: [PATCH 24/35] Add warp.ai.registerTool: plugins expose in-process
  tools to the AI agent (oh-my-warp)
 
 ---

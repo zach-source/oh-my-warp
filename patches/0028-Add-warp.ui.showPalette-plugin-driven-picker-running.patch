@@ -1,7 +1,7 @@
-From d8f71d9591c3f5f16bfd74dfea8833e3521a0681 Mon Sep 17 00:00:00 2001
+From 806393a6e8dd9c8a16680d6ff855e854792f5f62 Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Fri, 22 May 2026 00:11:24 -0400
-Subject: [PATCH 28/34] Add warp.ui.showPalette: plugin-driven picker running
+Subject: [PATCH 28/35] Add warp.ui.showPalette: plugin-driven picker running
  item commands (oh-my-warp)
 
 ---
