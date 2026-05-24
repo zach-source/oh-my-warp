@@ -5,6 +5,6 @@
   "engines": { "warp": "^1.0" },
   "main": "main.js",
   "description": "Exposes vercel-labs/agent-browser as AI agent tools so the Warp agent can drive a real web browser: navigate, snapshot (accessibility tree with refs), click, type, read, and screenshot.",
-  "permissions": ["ai", "process", "ui", "commands"],
+  "permissions": ["ai", "process", "ui", "commands", "fs:read"],
   "activationEvents": ["onStartup"]
 }

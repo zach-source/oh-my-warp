@@ -6,9 +6,12 @@
 // and screenshot.
 //
 // agent-browser is a native Rust CLI that speaks the Chrome DevTools Protocol. The
-// tools below shell out to it via `warp.process.exec` (capability "process") and
-// return its `--json` output to the agent. The browser is agent-browser's own
-// (headless) session — independent of oh-my-warp's visible browser pane.
+// tools below shell out to it via `warp.process.exec` and pass `--cdp <port>` so it
+// attaches to the SAME Chrome the oh-my-warp browser pane is screencasting — the
+// agent's actions appear live in the pane you're watching. The pane's Rust side
+// publishes its CDP port to `~/.warp/oh-my-warp/browser-active.json`; this plugin
+// reads it via `warp.fs.readFile` (capability "fs:read") and prepends `--cdp` to
+// every call.
 //
 // Install the CLI once (the plugin can't do this for you):
 //     brew install agent-browser     # or: npm i -g agent-browser
@@ -21,13 +24,9 @@
 //   3. browser_click / browser_type     act on a ref from the snapshot
 //   4. browser_get_text / snapshot      observe the result
 //
-// Capabilities (manifest `permissions`): ai, process, ui, commands.
+// Capabilities (manifest `permissions`): ai, process, ui, commands, fs:read.
 
 export function activate(warp) {
-  // A stable session name so multi-step tool calls share one browser (cookies,
-  // history, the current tab). Each named session has its own agent-browser daemon.
-  const SESSION = "omw-agent";
-
   const INSTALL_HINT =
     "agent-browser CLI not found. Install it with `brew install agent-browser` " +
     "(or `npm i -g agent-browser`, or `cargo install agent-browser`), then run " +
@@ -91,14 +90,70 @@ export function activate(warp) {
     return resolveBin() != null;
   }
 
-  // Run an agent-browser subcommand. Returns its stdout (usually JSON) on success,
-  // or a JSON error envelope the agent can read. Never throws.
+  // === CDP endpoint of the active oh-my-warp browser pane ====================
+  // The pane (Rust `BrowserSession`) publishes its Chrome CDP port to this file
+  // once Chrome is reachable. agent-browser attaches via `--cdp <port>`, so the
+  // agent and the user share the visible pane.
+  const ENDPOINT_FILE = (() => {
+    const home = (warp.plugin.dir || "").split("/.warp/")[0];
+    return home ? `${home}/.warp/oh-my-warp/browser-active.json` : null;
+  })();
+
+  function readEndpoint() {
+    if (!ENDPOINT_FILE) return null;
+    try {
+      const ep = JSON.parse(warp.fs.readFile(ENDPOINT_FILE));
+      if (typeof ep.port === "number" && ep.port > 0) return ep;
+    } catch (_) {
+      /* file absent or unparseable -> no pane currently open */
+    }
+    return null;
+  }
+
+  function cdpFlags() {
+    const ep = readEndpoint();
+    return ep ? ["--cdp", String(ep.port)] : null;
+  }
+
+  // Block the (sync) tool callback for `ms` milliseconds via /bin/sleep. rquickjs
+  // doesn't dispatch our callbacks asynchronously, and we need to wait for Chrome
+  // after `openWebTab` (the pane spawns Chrome on a background thread).
+  function sleepMs(ms) {
+    try {
+      warp.process.exec("/bin/sleep", [String(Math.max(0, ms) / 1000)]);
+    } catch (_) {
+      /* nothing actionable */
+    }
+  }
+
+  function waitForEndpoint(timeoutMs) {
+    const start = Date.now();
+    while (Date.now() - start < timeoutMs) {
+      const ep = readEndpoint();
+      if (ep) return ep;
+      sleepMs(200);
+    }
+    return null;
+  }
+
+  // Run an agent-browser subcommand against the active pane's Chrome. Returns the
+  // CLI's stdout (usually JSON) on success, or a JSON error envelope the agent can
+  // read. Errors if no pane is open — callers should funnel through `browser_open`.
   function ab(args) {
     const bin = resolveBin();
     if (!bin) return JSON.stringify({ ok: false, error: INSTALL_HINT });
+    const cdp = cdpFlags();
+    if (!cdp) {
+      return JSON.stringify({
+        ok: false,
+        error:
+          "no oh-my-warp browser pane is open; call browser_open({url}) first " +
+          "(it opens a pane the agent then drives via CDP).",
+      });
+    }
     let res;
     try {
-      res = warp.process.exec(bin, ["--session", SESSION, ...args]);
+      res = warp.process.exec(bin, [...cdp, ...args]);
     } catch (e) {
       return JSON.stringify({
         ok: false,
@@ -119,7 +174,8 @@ export function activate(warp) {
   }
 
   // Registers one AI tool. `build(args)` returns the agent-browser argv (after
-  // `--session`), or null if a required argument is missing.
+  // the `--cdp <port>` flag that `ab` prepends), or null if a required argument
+  // is missing.
   function tool(name, description, properties, required, build) {
     warp.ai.registerTool({
       name,
@@ -166,7 +222,11 @@ export function activate(warp) {
       } catch (_) {
         /* ignore */
       }
-      return `✅ agent-browser ready: ${resolveBin()} ${ver}`;
+      const ep = readEndpoint();
+      const pane = ep
+        ? `pane attached on CDP :${ep.port}`
+        : "no pane open — call browser_open(url) or press ctrl-b w";
+      return `✅ ${ver} at ${resolveBin()} · ${pane}`;
     },
   );
   warp.commands.register(
@@ -176,8 +236,10 @@ export function activate(warp) {
       warp.ui.showMarkdown(
         "Agent Browser",
         "# Agent Browser tools\n\n" +
-          "The AI agent can drive a real browser via these tools:\n\n" +
-          "- **browser_open** `{url}` — open a page\n" +
+          "The AI agent drives the **oh-my-warp browser pane you see** — every tool " +
+          "attaches to the pane's Chrome via `--cdp <port>`, so the agent's actions " +
+          "appear live in the pane.\n\n" +
+          "- **browser_open** `{url}` — open a pane (or navigate the existing one)\n" +
           "- **browser_snapshot** `{interactiveOnly?}` — accessibility tree with refs (@e1…)\n" +
           "- **browser_click / browser_type / browser_fill** `{target,…}` — act on a ref\n" +
           "- **browser_press** `{key}`, **browser_back/forward/reload**\n" +
@@ -190,19 +252,61 @@ export function activate(warp) {
   );
 
   // --- Navigation ---------------------------------------------------------
-  tool(
-    "browser_open",
-    "Open a URL in the agent's web browser (starts a headless session if needed). " +
-      "Call this first, then browser_snapshot to see the page. Accepts a full URL or a bare host.",
-    {
-      url: {
-        type: "string",
-        description: "URL or host to open, e.g. https://example.com",
+  // browser_open is special: if no pane is open yet, it opens one via the bridge
+  // (`warp.ui.openWebTab`) and waits for the pane to publish its CDP endpoint. If
+  // a pane is already open, it navigates the existing pane via `--cdp open`.
+  warp.ai.registerTool({
+    name: "browser_open",
+    description:
+      "Open a URL in the oh-my-warp browser pane (opens a new pane if none is open; " +
+      "otherwise navigates the existing pane). Subsequent browser_* calls drive THIS " +
+      "pane via CDP, so you and the user share the visible browser.",
+    schema: JSON.stringify({
+      type: "object",
+      properties: {
+        url: {
+          type: "string",
+          description: "URL or host to open, e.g. https://example.com",
+        },
       },
+      required: ["url"],
+    }),
+    run: (argsJson) => {
+      let args = {};
+      try {
+        args = JSON.parse(argsJson || "{}");
+      } catch (_) {
+        /* tolerate empty / malformed args */
+      }
+      if (!args.url)
+        return JSON.stringify({
+          ok: false,
+          error: "browser_open: missing 'url'",
+        });
+      const url = String(args.url);
+      warp.log(`agent-browser tool browser_open ${JSON.stringify(args)}`);
+      if (cdpFlags()) {
+        // Pane already open — navigate it via CDP-attached `open`.
+        return ab(["open", url, "--json"]);
+      }
+      // No pane — open one via the bridge and wait for it to publish its endpoint.
+      warp.ui.openWebTab(url);
+      const ep = waitForEndpoint(8000);
+      if (!ep) {
+        return JSON.stringify({
+          ok: false,
+          error:
+            "opened a browser pane but it did not publish a CDP endpoint within 8s; " +
+            "is the pane opening? (Cmd-P → 'Greet: Open Web Tab' to verify the bridge).",
+        });
+      }
+      return JSON.stringify({
+        ok: true,
+        port: ep.port,
+        message: `Opened pane navigated to ${url}; CDP attached on port ${ep.port}.`,
+      });
     },
-    ["url"],
-    (a) => (a.url ? ["open", String(a.url), "--json"] : null),
-  );
+  });
   tool("browser_back", "Go back to the previous page.", {}, [], () => [
     "back",
     "--json",

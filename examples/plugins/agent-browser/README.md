@@ -6,9 +6,15 @@ drive a real web browser — navigate, read the accessibility tree, click, type,
 screenshot.
 
 `agent-browser` is a native Rust CLI that speaks the Chrome DevTools Protocol. This
-plugin shells out to it via `warp.process.exec` and returns its `--json` output to the
-agent. The browser is agent-browser's own headless session, independent of oh-my-warp's
-visible browser pane (open one with `ctrl-b w`, or `warp.ui.openWebTab(url)` from a plugin).
+plugin shells out to it via `warp.process.exec` and prepends `--cdp <port>` so it
+attaches to the **same Chrome the oh-my-warp browser pane is screencasting** — the
+agent's actions appear live in the pane you're watching. The pane (`BrowserSession`
+in `app/src/browser/session.rs`) publishes its CDP port to
+`~/.warp/oh-my-warp/browser-active.json` once Chrome is reachable; this plugin reads
+that file via `warp.fs.readFile`.
+
+`browser_open` is special: if no pane is open it opens one via `warp.ui.openWebTab`
+and waits for the endpoint; if a pane is already open it navigates it via CDP.
 
 ## Install the CLI (once)
 
@@ -22,19 +28,19 @@ Run **Agent Browser: Check CLI** from the command palette (`Cmd-P`) to confirm i
 
 ## Tools the agent gets
 
-| Tool | Args | Purpose |
-|------|------|---------|
-| `browser_open` | `{url}` | Open a page (call first) |
-| `browser_snapshot` | `{interactiveOnly?}` | Accessibility tree with refs (`@e1`, `@e2`, …) |
-| `browser_click` | `{target}` | Click a ref or CSS selector |
-| `browser_type` | `{target, text}` | Type into an element (appends) |
-| `browser_fill` | `{target, text}` | Clear + fill an input |
-| `browser_press` | `{key}` | Press a key (Enter, Tab, …) |
-| `browser_get_text` | `{target?}` | Element/page text |
-| `browser_get_url` / `browser_get_title` | — | Current URL / title |
-| `browser_back` / `browser_forward` / `browser_reload` | — | Navigation |
-| `browser_wait_for` | `{text?, ms?}` | Wait for text or a delay |
-| `browser_screenshot` | `{path?}` | Save a PNG, returns the path |
+| Tool                                                  | Args                 | Purpose                                              |
+| ----------------------------------------------------- | -------------------- | ---------------------------------------------------- |
+| `browser_open`                                        | `{url}`              | Open a pane at `url` (or navigate the existing pane) |
+| `browser_snapshot`                                    | `{interactiveOnly?}` | Accessibility tree with refs (`@e1`, `@e2`, …)       |
+| `browser_click`                                       | `{target}`           | Click a ref or CSS selector                          |
+| `browser_type`                                        | `{target, text}`     | Type into an element (appends)                       |
+| `browser_fill`                                        | `{target, text}`     | Clear + fill an input                                |
+| `browser_press`                                       | `{key}`              | Press a key (Enter, Tab, …)                          |
+| `browser_get_text`                                    | `{target?}`          | Element/page text                                    |
+| `browser_get_url` / `browser_get_title`               | —                    | Current URL / title                                  |
+| `browser_back` / `browser_forward` / `browser_reload` | —                    | Navigation                                           |
+| `browser_wait_for`                                    | `{text?, ms?}`       | Wait for text or a delay                             |
+| `browser_screenshot`                                  | `{path?}`            | Save a PNG, returns the path                         |
 
 The agent's intended loop: `browser_open` → `browser_snapshot` (to discover refs) →
 `browser_click`/`browser_type` on a ref → observe with `browser_snapshot`/`browser_get_text`.
