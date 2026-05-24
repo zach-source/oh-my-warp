@@ -27,21 +27,79 @@ export function activate(warp) {
   // A stable session name so multi-step tool calls share one browser (cookies,
   // history, the current tab). Each named session has its own agent-browser daemon.
   const SESSION = "omw-agent";
-  const BIN = "agent-browser";
 
   const INSTALL_HINT =
     "agent-browser CLI not found. Install it with `brew install agent-browser` " +
     "(or `npm i -g agent-browser`, or `cargo install agent-browser`), then run " +
     "`agent-browser install` once to download Chrome.";
 
+  // Resolve agent-browser to an ABSOLUTE path. The app is launched from
+  // Finder/launchd with a minimal PATH that usually omits nix / homebrew / cargo
+  // bin dirs, so a bare "agent-browser" often fails with ENOENT even when it's on
+  // the user's interactive PATH. Probe common install locations, then fall back to
+  // a login shell (which sources the user's profile). Resolved once and cached;
+  // `null` means not found.
+  let RESOLVED_BIN; // undefined = unresolved, null = missing, string = abs path
+  function resolveBin() {
+    if (RESOLVED_BIN !== undefined) return RESOLVED_BIN;
+    const works = (p) => {
+      try {
+        return warp.process.exec(p, ["--version"]).code === 0;
+      } catch (_) {
+        return false;
+      }
+    };
+    const home = (warp.plugin.dir || "").split("/.warp/")[0];
+    const candidates = [
+      "agent-browser", // already on PATH (if the app inherited a full one)
+      home && `${home}/.nix-profile/bin/agent-browser`,
+      "/run/current-system/sw/bin/agent-browser", // nix-darwin system profile
+      "/opt/homebrew/bin/agent-browser",
+      "/usr/local/bin/agent-browser",
+      home && `${home}/.cargo/bin/agent-browser`,
+    ].filter(Boolean);
+    for (const p of candidates) {
+      if (works(p)) {
+        RESOLVED_BIN = p;
+        return RESOLVED_BIN;
+      }
+    }
+    // Last resort: ask a login shell to resolve it from the user's profile PATH.
+    for (const sh of ["/bin/zsh", "/bin/bash"]) {
+      try {
+        const { stdout, code } = warp.process.exec(sh, [
+          "-lc",
+          "command -v agent-browser",
+        ]);
+        const line = (stdout || "")
+          .split("\n")
+          .map((s) => s.trim())
+          .find((s) => s.startsWith("/") && s.endsWith("/agent-browser"));
+        if (code === 0 && line && works(line)) {
+          RESOLVED_BIN = line;
+          return RESOLVED_BIN;
+        }
+      } catch (_) {
+        /* try the next shell */
+      }
+    }
+    RESOLVED_BIN = null;
+    return RESOLVED_BIN;
+  }
+
+  function cliAvailable() {
+    return resolveBin() != null;
+  }
+
   // Run an agent-browser subcommand. Returns its stdout (usually JSON) on success,
   // or a JSON error envelope the agent can read. Never throws.
   function ab(args) {
+    const bin = resolveBin();
+    if (!bin) return JSON.stringify({ ok: false, error: INSTALL_HINT });
     let res;
     try {
-      res = warp.process.exec(BIN, ["--session", SESSION, ...args]);
+      res = warp.process.exec(bin, ["--session", SESSION, ...args]);
     } catch (e) {
-      // exec throws when the binary is missing (ENOENT) or can't be spawned.
       return JSON.stringify({
         ok: false,
         error: INSTALL_HINT,
@@ -58,14 +116,6 @@ export function activate(warp) {
     }
     const out = (stdout || "").trim();
     return out || JSON.stringify({ ok: true });
-  }
-
-  function cliAvailable() {
-    try {
-      return warp.process.exec(BIN, ["--version"]).code === 0;
-    } catch (_) {
-      return false;
-    }
   }
 
   // Registers one AI tool. `build(args)` returns the agent-browser argv (after
@@ -112,11 +162,11 @@ export function activate(warp) {
       }
       let ver = "(unknown)";
       try {
-        ver = warp.process.exec(BIN, ["--version"]).stdout.trim();
+        ver = warp.process.exec(resolveBin(), ["--version"]).stdout.trim();
       } catch (_) {
         /* ignore */
       }
-      return `✅ agent-browser ready: ${ver}`;
+      return `✅ agent-browser ready: ${resolveBin()} ${ver}`;
     },
   );
   warp.commands.register(
