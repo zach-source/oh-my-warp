@@ -31,6 +31,10 @@ Exposes [`vercel-labs/agent-browser`](https://github.com/vercel-labs/agent-brows
 
 A [tmux-sessionizer](https://github.com/ThePrimeagen/tmux-sessionizer)-style project switcher: scans your dev roots (`~/repos`, `~/src`, …) and opens a picked project in a new tab. Command palette "Sessionizer: Switch Project" or the leader chord `ctrl-b f`. Uses `warp.ui.openProject(path)`. See [`sessionizer/README.md`](sessionizer/README.md).
 
+## `claude-usage/` — token usage & cost (terminal + agent)
+
+Track Claude Code usage in both surfaces: command palette ("Claude Usage: Today / This Month / Active Block", leader `ctrl-b u`) and an agent tool `claude_usage({period})`. Backed by [`ccusage`](https://github.com/ryoppippi/ccusage). Doubles as the template for a custom tool exposed in both terminal and agent modes. See [`claude-usage/README.md`](claude-usage/README.md).
+
 ## What works today (Phases 0–3)
 
 - The host loads each plugin's **`main.js`** (compiled as an ES module) and calls **`export function activate(warp)`**.

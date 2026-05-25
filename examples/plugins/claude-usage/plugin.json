@@ -1,0 +1,10 @@
+{
+  "id": "com.ohmywarp.claude-usage",
+  "name": "Claude Usage",
+  "version": "1.0.0",
+  "engines": { "warp": "^1.0" },
+  "main": "main.js",
+  "description": "Track Claude Code token usage and cost (via ccusage) from both the command palette (terminal mode) and as an AI agent tool. Leader chord: ctrl-b u.",
+  "permissions": ["commands", "ai", "process", "ui"],
+  "activationEvents": ["onStartup"]
+}
