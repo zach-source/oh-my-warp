@@ -1,4 +1,4 @@
-From 698936a33c451a5c132c06525db9ecf83a5e3fe7 Mon Sep 17 00:00:00 2001
+From fed7a1e4a35532db7d4283e0cb1dd5a1f3a8f245 Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Thu, 21 May 2026 08:36:18 -0400
 Subject: [PATCH 12/39] Disable RudderStack telemetry egress (oh-my-warp)

@@ -1,4 +1,4 @@
-From 6f48f0cb5db2c3a9161fdcf703beac410c3fb63d Mon Sep 17 00:00:00 2001
+From aaba9e821482a5b5ac2d0acfbe7b25751abcc9fd Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Fri, 22 May 2026 00:02:51 -0400
 Subject: [PATCH 27/39] Add warp.ui.showMarkdown: render plugin markdown in a

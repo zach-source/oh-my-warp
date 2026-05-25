@@ -1,4 +1,4 @@
-From c99716845002ce3f178fd0e4077fd967789aea82 Mon Sep 17 00:00:00 2001
+From 024fd4aaa1a6db963eb59db14a6d39ffa96a0b78 Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Fri, 22 May 2026 18:48:45 -0400
 Subject: [PATCH 31/39] Wire BrowserPane into the pane tree, persistence, and

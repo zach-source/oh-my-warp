@@ -1,15 +1,15 @@
-From fa7039d419617fd1f50bd97c15ce683ce7bfe404 Mon Sep 17 00:00:00 2001
+From 769d5ab11537968d4c1a09f6a9d139814417f55e Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Mon, 25 May 2026 14:07:04 -0400
 Subject: [PATCH 39/39] Add warp.ui.openProject(path): switch to an existing
  tab rooted at the dir, else open a new terminal tab there (oh-my-warp)
 
 ---
- app/src/plugin/app/mod.rs                |  5 ++++
- app/src/plugin/app_requests.rs           |  2 ++
- app/src/plugin/host/native/js_api/mod.rs | 11 +++++++-
- app/src/workspace/view.rs                | 36 ++++++++++++++++++++++++
- 4 files changed, 53 insertions(+), 1 deletion(-)
+ app/src/plugin/app/mod.rs                |  5 +++
+ app/src/plugin/app_requests.rs           |  2 +
+ app/src/plugin/host/native/js_api/mod.rs | 11 ++++-
+ app/src/workspace/view.rs                | 51 +++++++++++++++++++++++-
+ 4 files changed, 67 insertions(+), 2 deletions(-)
 
 diff --git a/app/src/plugin/app/mod.rs b/app/src/plugin/app/mod.rs
 index f6e22d7e..0e8d2279 100644
@@ -77,7 +77,7 @@ index 2401a85a..da6181b7 100644
  }
  
 diff --git a/app/src/workspace/view.rs b/app/src/workspace/view.rs
-index eaf3d632..6787e459 100644
+index eaf3d632..375d7211 100644
 --- a/app/src/workspace/view.rs
 +++ b/app/src/workspace/view.rs
 @@ -2036,6 +2036,12 @@ impl Workspace {
@@ -130,3 +130,25 @@ index eaf3d632..6787e459 100644
      fn handle_open_repository(&mut self, path: &str, ctx: &mut ViewContext<Self>) {
          let path_buf = PathBuf::from(path);
          ProjectManagementModel::handle(ctx).update(ctx, |projects, ctx| {
+@@ -21228,7 +21264,20 @@ impl TypedActionView for Workspace {
+         match action {
+             RunPluginCommand(command_id) => {
+                 #[cfg(feature = "plugin_host")]
+-                crate::plugin::commands::run_plugin_command(command_id, ctx);
++                {
++                    // oh-my-warp: a palette item whose command id is
++                    // `warp:openProject:<path>` opens that project (switch-or-create)
++                    // instead of running a registered plugin command. This lets
++                    // plugins (e.g. sessionizer) build fully-dynamic project pickers
++                    // via `showPalette` without registering a command per project —
++                    // which would re-enter `plugin.get_mut()` from inside the command
++                    // callback and crash the host.
++                    if let Some(path) = command_id.strip_prefix("warp:openProject:") {
++                        self.open_or_focus_project(path, ctx);
++                    } else {
++                        crate::plugin::commands::run_plugin_command(command_id, ctx);
++                    }
++                }
+                 #[cfg(not(feature = "plugin_host"))]
+                 let _ = command_id;
+             }

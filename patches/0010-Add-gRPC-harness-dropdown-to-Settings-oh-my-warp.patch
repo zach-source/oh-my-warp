@@ -1,4 +1,4 @@
-From 0bb3c0f9a4bd987b2c870d92d1ffc09fe5d8bc37 Mon Sep 17 00:00:00 2001
+From d279b4fb30e12dec3e9c5f53744356c363183e8c Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Wed, 20 May 2026 23:50:58 -0400
 Subject: [PATCH 10/39] Add gRPC harness dropdown to Settings (oh-my-warp)

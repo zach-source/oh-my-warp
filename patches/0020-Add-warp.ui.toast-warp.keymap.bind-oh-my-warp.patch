@@ -1,4 +1,4 @@
-From da03fdfdce54b8b15f170d65efacd4ca9ab35a59 Mon Sep 17 00:00:00 2001
+From 7fd6f3848e25b3f4eb273b5473979dd81b588aa8 Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Thu, 21 May 2026 13:31:39 -0400
 Subject: [PATCH 20/39] Add warp.ui.toast + warp.keymap.bind (oh-my-warp)
