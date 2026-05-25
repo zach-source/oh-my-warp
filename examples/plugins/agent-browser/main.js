@@ -258,9 +258,14 @@ export function activate(warp) {
   warp.ai.registerTool({
     name: "browser_open",
     description:
-      "Open a URL in the oh-my-warp browser pane (opens a new pane if none is open; " +
-      "otherwise navigates the existing pane). Subsequent browser_* calls drive THIS " +
-      "pane via CDP, so you and the user share the visible browser.",
+      "Browse the web inside oh-my-warp / Warp. USE THIS TOOL whenever the user asks " +
+      "to open a URL, browse the web, look something up online, visit a site, or " +
+      "interact with Warp's embedded web/browser pane — even if they don't mention " +
+      "'browser_open' or 'agent-browser' by name. Opens the URL in an embedded browser " +
+      "pane (creates one if none is open; otherwise navigates the existing pane). " +
+      "Subsequent browser_* tools (browser_snapshot, browser_click, browser_type, " +
+      "browser_get_text) drive the SAME visible pane via CDP, so what the agent does is " +
+      "what the user sees.",
     schema: JSON.stringify({
       type: "object",
       properties: {
@@ -323,8 +328,10 @@ export function activate(warp) {
   // --- Observe ------------------------------------------------------------
   tool(
     "browser_snapshot",
-    "Get the current page's accessibility tree with stable element refs (e.g. @e1, @e2). " +
-      "Use those refs with browser_click / browser_type. Defaults to interactive elements only.",
+    "Read what's on the current page in the oh-my-warp browser pane (accessibility tree " +
+      "with stable element refs like @e1, @e2). Call this after browser_open to see what's " +
+      "visible and to get refs for browser_click / browser_type / browser_fill. Use this " +
+      "instead of guessing selectors. Defaults to interactive elements only.",
     {
       interactiveOnly: {
         type: "boolean",
