@@ -35,3 +35,4 @@
 0033-Browser-pane-page-right-click-context-menu-sharper-s.patch
 0034-Add-warp.ui.openWebTab-open-an-embedded-browser-pane.patch
 0035-Browser-pane-publish-CDP-endpoint-to-.warp-oh-my-war.patch
+0036-Persist-browser-panes-URL-across-app-restart-new-bro.patch
