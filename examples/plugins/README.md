@@ -27,6 +27,10 @@ You should see the `activate()` output relayed from the host via the IPC `LogSer
 
 Exposes [`vercel-labs/agent-browser`](https://github.com/vercel-labs/agent-browser) as AI agent tools (`warp.ai.registerTool`), so the agent can drive a real browser: open pages, snapshot the accessibility tree, click, type, read, and screenshot. Requires the `agent-browser` CLI (`brew install agent-browser && agent-browser install`). See [`agent-browser/README.md`](agent-browser/README.md). Install the same way as `hello` (symlink into `~/.warp/plugins/`).
 
+## `sessionizer/` — project switcher
+
+A [tmux-sessionizer](https://github.com/ThePrimeagen/tmux-sessionizer)-style project switcher: scans your dev roots (`~/repos`, `~/src`, …) and opens a picked project in a new tab. Command palette "Sessionizer: Switch Project" or the leader chord `ctrl-b f`. Uses `warp.ui.openProject(path)`. See [`sessionizer/README.md`](sessionizer/README.md).
+
 ## What works today (Phases 0–3)
 
 - The host loads each plugin's **`main.js`** (compiled as an ES module) and calls **`export function activate(warp)`**.
