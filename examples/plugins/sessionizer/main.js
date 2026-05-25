@@ -1,29 +1,33 @@
 // oh-my-warp — Sessionizer plugin.
 //
-// A tmux-sessionizer-style project switcher. At startup it scans your common dev
-// roots (~/repos, ~/src, ~/projects, …) for immediate subdirectories (your
-// projects), registers an "open" command for each, and exposes a picker:
+// A tmux-sessionizer-style project switcher. Run it (palette "Sessionizer: Switch
+// Project" or the leader chord ctrl-b f) to fuzzy-pick a git repo under your dev
+// roots and switch to it. If a tab rooted at that repo is already open it is
+// focused; otherwise a new tab with a terminal there is opened (switch-or-create,
+// handled app-side by the `warp:openProject:<path>` palette sentinel → patch 0039).
 //
-//   • Command palette (Cmd-P): "Sessionizer: Switch Project"
-//   • Leader chord:            ctrl-b f   (f = find project)
+// Discovery re-runs on every invocation, so repos created after Warp launched show
+// up without a restart. It deliberately does NOT register a command per project:
+// doing so from inside this command's callback would re-enter the plugin host and
+// crash it — instead each palette item carries the `warp:openProject:` sentinel,
+// which the app resolves directly.
 //
-// Picking a project opens it in a new tab with a terminal rooted there, via the
-// warp.ui.openProject(path) API (which dispatches WorkspaceAction::OpenRepository).
+// Roots: by default it scans common dev dirs under $HOME. To override, create
+// ~/.warp/oh-my-warp/sessionizer-roots.txt with one directory per line (a leading
+// ~/ is expanded; blank lines and #-comments are ignored).
 //
-// Customizing roots: edit ROOT_NAMES below. (Projects are discovered once at
-// startup — restart Warp after adding a new repo. See README.md.)
-//
-// Capabilities (manifest `permissions`): commands, process, ui.
+// Capabilities (manifest `permissions`): commands, process, ui, fs:read.
 
 export function activate(warp) {
-  const FIND = "/usr/bin/find"; // BSD find on macOS; in the GUI PATH (/usr/bin).
-  const MAX_PROJECTS = 300; // guardrail so a huge tree doesn't flood the palette.
+  const FIND = "/usr/bin/find"; // BSD find on macOS; lives in the GUI PATH (/usr/bin).
+  const MAX_PROJECTS = 500; // guardrail so a huge tree can't flood the palette.
 
   // $HOME, derived from the plugin dir (~/.warp/plugins/sessionizer).
   const home = (warp.plugin.dir || "").split("/.warp/")[0] || "";
-
-  // Common dev roots, relative to $HOME. Only those that exist are scanned.
-  const ROOT_NAMES = [
+  const ROOTS_FILE = home
+    ? `${home}/.warp/oh-my-warp/sessionizer-roots.txt`
+    : null;
+  const DEFAULT_ROOT_NAMES = [
     "repos",
     "src",
     "projects",
@@ -33,23 +37,48 @@ export function activate(warp) {
     "Developer",
     "go/src",
   ];
-  const roots = home ? ROOT_NAMES.map((r) => `${home}/${r}`) : [];
 
-  // Discover projects = immediate subdirectories (depth 1) of each existing root.
+  function expandHome(p) {
+    if (p === "~") return home;
+    if (p.startsWith("~/")) return home + p.slice(1);
+    return p;
+  }
+
+  // The roots to scan: the config file (if present and non-empty) fully overrides
+  // the built-in defaults.
+  function roots() {
+    if (ROOTS_FILE) {
+      try {
+        const lines = warp.fs
+          .readFile(ROOTS_FILE)
+          .split("\n")
+          .map((l) => l.trim())
+          .filter((l) => l && !l.startsWith("#"))
+          .map(expandHome);
+        if (lines.length) return lines;
+      } catch (_) {
+        /* no config file -> fall through to defaults */
+      }
+    }
+    return home ? DEFAULT_ROOT_NAMES.map((r) => `${home}/${r}`) : [];
+  }
+
+  // Discover git repos: directories containing a `.git` exactly one level under
+  // each root (so `<root>/<repo>/.git`).
   function discoverProjects() {
     const seen = new Set();
     const projects = [];
-    for (const root of roots) {
+    for (const root of roots()) {
       let stdout = "";
       try {
         const res = warp.process.exec(FIND, [
           root,
           "-mindepth",
-          "1",
+          "2",
           "-maxdepth",
-          "1",
-          "-type",
-          "d",
+          "2",
+          "-name",
+          ".git",
         ]);
         if (res.code !== 0) continue; // root probably doesn't exist
         stdout = res.stdout || "";
@@ -57,7 +86,9 @@ export function activate(warp) {
         continue; // find missing / not permitted
       }
       for (const line of stdout.split("\n")) {
-        const path = line.trim();
+        const git = line.trim();
+        if (!git) continue;
+        const path = git.replace(/\/\.git$/, ""); // parent of .git = the repo
         if (!path || seen.has(path)) continue;
         seen.add(path);
         projects.push({ path, name: path.split("/").pop() || path });
@@ -67,38 +98,24 @@ export function activate(warp) {
     return projects.slice(0, MAX_PROJECTS);
   }
 
-  const projects = discoverProjects();
-
-  // Register an open-command per project. showPalette items reference command ids
-  // (not inline callbacks), so each project needs its own registered command; the
-  // path is captured here at registration time.
-  for (const { path, name } of projects) {
-    warp.commands.register(
-      `sessionizer.open:${path}`,
-      `Project: ${name}`,
-      () => {
-        warp.ui.openProject(path);
-      },
-    );
-  }
-
-  // The picker.
   warp.commands.register(
     "sessionizer.switch",
     "Sessionizer: Switch Project",
     () => {
+      const projects = discoverProjects();
       if (projects.length === 0) {
         warp.ui.toast(
-          `Sessionizer: no projects found under ${roots.join(", ") || "(no roots)"}`,
+          `Sessionizer: no git repos found under ${roots().join(", ") || "(no roots)"}`,
           "warn",
         );
         return;
       }
+      // Each item opens its project via the app-side sentinel (switch-or-create).
       warp.ui.showPalette(
         "Switch to project",
         projects.map((p) => ({
           label: p.name,
-          command: `sessionizer.open:${p.path}`,
+          command: `warp:openProject:${p.path}`,
         })),
       );
     },
@@ -107,7 +124,5 @@ export function activate(warp) {
   // tmux-sessionizer muscle memory: leader (ctrl-b) then "f" (find project).
   warp.keymap.bind("sessionizer.switch", "ctrl-b f");
 
-  warp.log(
-    `Sessionizer ready: ${projects.length} project(s) across ${roots.length} root(s)`,
-  );
+  warp.log("Sessionizer ready (ctrl-b f to switch projects)");
 }

@@ -1,10 +1,10 @@
 {
   "id": "com.ohmywarp.sessionizer",
   "name": "Sessionizer",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "engines": { "warp": "^1.0" },
   "main": "main.js",
-  "description": "tmux-sessionizer-style project switcher: fuzzy-pick a repo under your dev roots and open it in a new tab. Bound to the leader chord ctrl-b f.",
-  "permissions": ["commands", "process", "ui"],
+  "description": "tmux-sessionizer-style project switcher: fuzzy-pick a git repo under your dev roots and switch to (or open) it. Bound to the leader chord ctrl-b f.",
+  "permissions": ["commands", "process", "ui", "fs:read"],
   "activationEvents": ["onStartup"]
 }
