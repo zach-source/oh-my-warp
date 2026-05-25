@@ -1,7 +1,7 @@
-From 986d9cbc2f89b465e9a9587c2ac80a8d3a283b24 Mon Sep 17 00:00:00 2001
+From 696d1713d9242e02d28769f9eb0bb0e5acbdf110 Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Wed, 20 May 2026 22:48:46 -0400
-Subject: [PATCH 09/37] Add in-process gRPC agent bridge (oh-my-warp)
+Subject: [PATCH 09/39] Add in-process gRPC agent bridge (oh-my-warp)
 
 Routes Warp's agent control ops to a custom gRPC harness host when a gRPC
 backend is selected (agent_backends Backend.grpc_endpoint/harness/token).

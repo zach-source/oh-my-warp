@@ -1,7 +1,7 @@
-From c87e61ee3061c53f1bd136b2d55902e3ac0d9d7b Mon Sep 17 00:00:00 2001
+From c36bb0e15d2156bfe1a3d8ef494a6c9a975c1057 Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Thu, 21 May 2026 10:19:01 -0400
-Subject: [PATCH 14/37] Enable the JavaScript plugin host in the default build
+Subject: [PATCH 14/39] Enable the JavaScript plugin host in the default build
  (oh-my-warp)
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8

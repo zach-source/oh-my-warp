@@ -1,7 +1,7 @@
-From 933a85493f149433dc000dfb0a4ea9ac6a211e6b Mon Sep 17 00:00:00 2001
+From 636cb64fb526cf9313afe131e3788376b09ccba7 Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Wed, 20 May 2026 23:50:58 -0400
-Subject: [PATCH 10/37] Add gRPC harness dropdown to Settings (oh-my-warp)
+Subject: [PATCH 10/39] Add gRPC harness dropdown to Settings (oh-my-warp)
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit

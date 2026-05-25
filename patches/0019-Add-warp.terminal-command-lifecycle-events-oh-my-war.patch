@@ -1,7 +1,7 @@
-From 17f03271bf7486d51594ad80846c1f186d935e47 Mon Sep 17 00:00:00 2001
+From 27ee1319a1a5743d5f376ddc01d18286d8bcea7b Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Thu, 21 May 2026 11:56:44 -0400
-Subject: [PATCH 19/37] Add warp.terminal command-lifecycle events (oh-my-warp)
+Subject: [PATCH 19/39] Add warp.terminal command-lifecycle events (oh-my-warp)
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit

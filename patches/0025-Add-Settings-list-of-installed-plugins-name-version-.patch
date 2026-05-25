@@ -1,7 +1,7 @@
-From 7adfb924dce0f822f17d5c8ee9b1141a7446cd97 Mon Sep 17 00:00:00 2001
+From a238df196ff1bf0d3aef02c51692b5a9291ccc89 Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Thu, 21 May 2026 22:41:31 -0400
-Subject: [PATCH 25/37] Add Settings list of installed plugins (name, version,
+Subject: [PATCH 25/39] Add Settings list of installed plugins (name, version,
  permissions) (oh-my-warp)
 
 ---

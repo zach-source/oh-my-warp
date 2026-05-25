@@ -1,7 +1,7 @@
-From 788d0be758e8d3906faab92a0485a43ae5e9bb8f Mon Sep 17 00:00:00 2001
+From 2ea92cb9389b9bdd589fb50849d4954fd03cda1d Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Wed, 20 May 2026 11:51:24 -0400
-Subject: [PATCH 02/37] Make leader keymap configurable via named editable
+Subject: [PATCH 02/39] Make leader keymap configurable via named editable
  bindings
 
 Convert the leader chords from FixedBindings to named EditableBindings
