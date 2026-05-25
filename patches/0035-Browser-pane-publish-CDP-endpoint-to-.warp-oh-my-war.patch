@@ -1,7 +1,7 @@
-From 86a651078c2147d5e724fdd062108f7717781cbe Mon Sep 17 00:00:00 2001
+From 79e71f36fee955465d195861dc388a4d6623e8ab Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Sun, 24 May 2026 16:08:29 -0400
-Subject: [PATCH 35/36] Browser pane: publish CDP endpoint to
+Subject: [PATCH 35/37] Browser pane: publish CDP endpoint to
  ~/.warp/oh-my-warp/browser-active.json so plugins can attach (oh-my-warp)
 
 ---

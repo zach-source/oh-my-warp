@@ -1,7 +1,7 @@
-From 7803571a478fe5b9b433b5ead508bf18fe688fd6 Mon Sep 17 00:00:00 2001
+From dd5f85805983758ae475b7048f6e7bc10a712517 Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Fri, 22 May 2026 22:44:35 -0400
-Subject: [PATCH 34/36] Add warp.ui.openWebTab: open an embedded browser pane
+Subject: [PATCH 34/37] Add warp.ui.openWebTab: open an embedded browser pane
  from plugins (oh-my-warp)
 
 ---
