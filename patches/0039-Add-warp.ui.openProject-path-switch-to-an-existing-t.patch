@@ -1,15 +1,15 @@
-From ff390b2394ea084219c37e574782c86c4e8fd127 Mon Sep 17 00:00:00 2001
+From fa7039d419617fd1f50bd97c15ce683ce7bfe404 Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Mon, 25 May 2026 14:07:04 -0400
-Subject: [PATCH 39/39] Add warp.ui.openProject(path): open a terminal tab
- rooted at a directory (oh-my-warp)
+Subject: [PATCH 39/39] Add warp.ui.openProject(path): switch to an existing
+ tab rooted at the dir, else open a new terminal tab there (oh-my-warp)
 
 ---
- app/src/plugin/app/mod.rs                |  5 +++++
+ app/src/plugin/app/mod.rs                |  5 ++++
  app/src/plugin/app_requests.rs           |  2 ++
- app/src/plugin/host/native/js_api/mod.rs | 11 ++++++++++-
- app/src/workspace/view.rs                |  5 +++++
- 4 files changed, 22 insertions(+), 1 deletion(-)
+ app/src/plugin/host/native/js_api/mod.rs | 11 +++++++-
+ app/src/workspace/view.rs                | 36 ++++++++++++++++++++++++
+ 4 files changed, 53 insertions(+), 1 deletion(-)
 
 diff --git a/app/src/plugin/app/mod.rs b/app/src/plugin/app/mod.rs
 index f6e22d7e..0e8d2279 100644
@@ -77,18 +77,56 @@ index 2401a85a..da6181b7 100644
  }
  
 diff --git a/app/src/workspace/view.rs b/app/src/workspace/view.rs
-index eaf3d632..fa93e938 100644
+index eaf3d632..6787e459 100644
 --- a/app/src/workspace/view.rs
 +++ b/app/src/workspace/view.rs
-@@ -2036,6 +2036,11 @@ impl Workspace {
+@@ -2036,6 +2036,12 @@ impl Workspace {
                  // `BrowserView::new` via the one-shot URL override.
                  me.open_web_tab(Some(url.clone()), ctx);
              }
 +            crate::plugin::PluginHostEvent::OpenProject { path } => {
-+                // Open a new tab with a terminal rooted at `path` (backs the
-+                // sessionizer plugin). Same path as `WorkspaceAction::OpenRepository`.
-+                me.open_repository(Some(path), ctx);
++                // Backs the sessionizer plugin: focus an existing tab rooted at
++                // `path` if one is open, else open a new one (tmux-sessionizer's
++                // switch-or-create).
++                me.open_or_focus_project(path, ctx);
 +            }
          });
      }
  
+@@ -11501,6 +11507,36 @@ impl Workspace {
+         }
+     }
+ 
++    /// Switch-or-create for a project directory (backs `warp.ui.openProject`): if
++    /// any tab already has a terminal whose cwd is `path` (or a subdirectory of
++    /// it), activate that tab; otherwise open a fresh tab rooted at `path`. This
++    /// gives the sessionizer tmux-style "jump to the session if it exists" behavior
++    /// rather than piling up duplicate tabs.
++    fn open_or_focus_project(&mut self, path: &str, ctx: &mut ViewContext<Self>) {
++        let target = PathBuf::from(path);
++        let mut existing_tab: Option<usize> = None;
++        for index in 0..self.tabs.len() {
++            let Some(pane_group) = self.get_pane_group_view(index).cloned() else {
++                continue;
++            };
++            let rooted_here = pane_group
++                .as_ref(ctx)
++                .terminal_view_working_directories(ctx)
++                .any(|(_, cwd)| match cwd {
++                    Some(LocalOrRemotePath::Local(p)) => p == target || p.starts_with(&target),
++                    _ => false,
++                });
++            if rooted_here {
++                existing_tab = Some(index);
++                break;
++            }
++        }
++        match existing_tab {
++            Some(index) => self.activate_tab(index, ctx),
++            None => self.handle_open_repository(path, ctx),
++        }
++    }
++
+     fn handle_open_repository(&mut self, path: &str, ctx: &mut ViewContext<Self>) {
+         let path_buf = PathBuf::from(path);
+         ProjectManagementModel::handle(ctx).update(ctx, |projects, ctx| {

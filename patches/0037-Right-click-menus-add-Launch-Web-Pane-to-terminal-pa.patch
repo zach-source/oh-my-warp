@@ -1,4 +1,4 @@
-From 57c502289600a8e560209f84c2c2e102daac9b71 Mon Sep 17 00:00:00 2001
+From e23535879d6fd9eecacbe5ab2038deca4cd69082 Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Mon, 25 May 2026 12:16:32 -0400
 Subject: [PATCH 37/39] Right-click menus: add 'Launch Web Pane' to terminal

@@ -1,4 +1,4 @@
-From 96689c732b69bd1b085a65c0e82d3aff3d69b93c Mon Sep 17 00:00:00 2001
+From 6afea713bf95c7111d87c54d302e695eb359bc24 Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Mon, 25 May 2026 01:27:52 -0400
 Subject: [PATCH 36/39] Persist browser panes (URL) across app restart: new

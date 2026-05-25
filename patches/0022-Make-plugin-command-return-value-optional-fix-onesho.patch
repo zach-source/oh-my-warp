@@ -1,4 +1,4 @@
-From c51ed931635f6df6bb28cf6a4f74d43adbb4165b Mon Sep 17 00:00:00 2001
+From 7ef24b71482c59d927199a5031ee3fccc2227433 Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Thu, 21 May 2026 16:51:24 -0400
 Subject: [PATCH 22/39] Make plugin command return value optional (fix 'oneshot
