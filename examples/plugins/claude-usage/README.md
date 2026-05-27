@@ -23,6 +23,15 @@ The agent gets a `claude_usage({period})` tool (`period`: `daily` \| `monthly` \
 `session` \| `blocks`). Ask things like *"how much have I spent on Claude this
 month?"* or *"what's my token usage today?"* and it calls the tool and summarizes.
 
+## Native prompt chip
+
+The plugin also pushes a live **`claude $X.XX`** chip (today's spend) into Warp's
+native prompt via `warp.prompt.set(...)`, refreshed after commands finish
+(throttled to once per 30s). It renders as a right-grouped chip alongside the
+built-in ones (cwd, git branch, …). On a Warp build without the `warp.prompt`
+API the plugin simply skips it. This is the worked example for the API — see
+`warp.prompt` in [`PLUGIN_SPEC.md`](../../../PLUGIN_SPEC.md).
+
 ## Requirements
 
 `ccusage` — install globally (`npm i -g ccusage`) for speed, or just have `npx` on

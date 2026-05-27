@@ -33,7 +33,7 @@ A [tmux-sessionizer](https://github.com/ThePrimeagen/tmux-sessionizer)-style pro
 
 ## `claude-usage/` — token usage & cost (terminal + agent)
 
-Track Claude Code usage in both surfaces: command palette ("Claude Usage: Today / This Month / Active Block", leader `ctrl-b u`) and an agent tool `claude_usage({period})`. Backed by [`ccusage`](https://github.com/ryoppippi/ccusage). Doubles as the template for a custom tool exposed in both terminal and agent modes. See [`claude-usage/README.md`](claude-usage/README.md).
+Track Claude Code usage in three surfaces: command palette ("Claude Usage: Today / This Month / Active Block", leader `ctrl-b u`), an agent tool `claude_usage({period})`, and a live **`claude $X.XX`** chip in the native prompt (via `warp.prompt`). Backed by [`ccusage`](https://github.com/ryoppippi/ccusage). Doubles as the template for a custom tool exposed across terminal, agent, and prompt surfaces. See [`claude-usage/README.md`](claude-usage/README.md).
 
 ## What works today (Phases 0–3)
 
@@ -44,4 +44,4 @@ Track Claude Code usage in both surfaces: command palette ("Claude Usage: Today 
 - **`warp.ui.toast(message, kind?)`** — show a toast at any time (`kind`: `"info"` | `"warn"` | `"error"`). Try *"Greet: Toast (warp.ui.toast)"*.
 - **`warp.keymap.bind(commandId, keys)`** — bind a key sequence to a command. The `hello` plugin binds *"Greet: Keybound Hello"* to the **`ctrl-b h`** leader chord; the user's `keybindings.yaml` overrides it.
 
-The `plugin.json` manifest is parsed: `engines.warp` is enforced and `permissions` gate capability namespaces. Beyond the base API above, plugins can use **`warp.ai.registerTool`** (expose AI agent tools), **`warp.fs`** / **`warp.process`** / **`warp.network`** (capability-gated), and **`warp.ui.showMarkdown`** / **`showPalette`** / **`openWebTab`**. See [`PLUGIN_SPEC.md`](../../PLUGIN_SPEC.md) and the `agent-browser` plugin for examples.
+The `plugin.json` manifest is parsed: `engines.warp` is enforced and `permissions` gate capability namespaces. Beyond the base API above, plugins can use **`warp.ai.registerTool`** (expose AI agent tools), **`warp.fs`** / **`warp.process`** / **`warp.network`** (capability-gated), **`warp.ui.showMarkdown`** / **`showPalette`** / **`openWebTab`**, and **`warp.prompt.set`** / **`clear`** (contribute native prompt segments; see `claude-usage`). See [`PLUGIN_SPEC.md`](../../PLUGIN_SPEC.md) and the `agent-browser` plugin for examples.

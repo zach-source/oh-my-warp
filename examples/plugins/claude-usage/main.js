@@ -211,6 +211,48 @@ export function activate(warp) {
     },
   });
 
+  // --- Native prompt segment: live "today" cost (warp.prompt) ------------------
+  // Pushes a right-grouped chip with today's spend into Warp's native prompt and
+  // refreshes it after commands finish (throttled), so it tracks usage as you work.
+  // Degrades gracefully on a Warp without `warp.prompt` / `warp.terminal`.
+  function todayCostText() {
+    const data = ccusage(["daily"]);
+    if (data.error) return null;
+    const days = data.daily || [];
+    const t = today();
+    const entry = days.find((d) => d.date === t) || days[days.length - 1];
+    return entry ? usd(entry.totalCost) : null;
+  }
+
+  function refreshPromptSegment() {
+    if (!warp.prompt) return;
+    const cost = todayCostText();
+    if (cost == null) {
+      warp.prompt.clear();
+      return;
+    }
+    warp.prompt.set([
+      {
+        text: `claude ${cost}`,
+        side: "right",
+        tooltip: "Claude usage today (ccusage)",
+      },
+    ]);
+  }
+
+  if (warp.prompt) {
+    refreshPromptSegment(); // show it right away
+    if (warp.terminal && warp.terminal.onCommandFinished) {
+      let lastPromptRefresh = 0;
+      warp.terminal.onCommandFinished(() => {
+        const now = Date.now();
+        if (now - lastPromptRefresh < 30000) return; // at most once per 30s
+        lastPromptRefresh = now;
+        refreshPromptSegment();
+      });
+    }
+  }
+
   // --- add your own tools here -------------------------------------------------
   // Pattern: `panelCommand(id, title, () => "# markdown")` for a terminal command,
   // and/or `warp.ai.registerTool({ name, description, schema, run })` for the agent.
