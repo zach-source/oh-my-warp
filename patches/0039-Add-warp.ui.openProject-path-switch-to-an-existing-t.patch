@@ -1,7 +1,7 @@
-From 769d5ab11537968d4c1a09f6a9d139814417f55e Mon Sep 17 00:00:00 2001
+From 972c73aecb2c3ad896e70a673d2b5cc37ba7a496 Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Mon, 25 May 2026 14:07:04 -0400
-Subject: [PATCH 39/39] Add warp.ui.openProject(path): switch to an existing
+Subject: [PATCH 39/40] Add warp.ui.openProject(path): switch to an existing
  tab rooted at the dir, else open a new terminal tab there (oh-my-warp)
 
 ---

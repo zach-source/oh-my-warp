@@ -1,7 +1,7 @@
-From 9033ce0b65b3fe4f221c7c01697f6cd8a8aa5503 Mon Sep 17 00:00:00 2001
+From 587465f801eab307e11630f88fe6c9d0888fee62 Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Thu, 21 May 2026 11:37:28 -0400
-Subject: [PATCH 17/39] Add warp.commands plugin API + command registry
+Subject: [PATCH 17/40] Add warp.commands plugin API + command registry
  (oh-my-warp)
 
 Plugins can register command-palette commands via warp.commands.register(id,

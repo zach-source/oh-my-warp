@@ -1,7 +1,7 @@
-From 024fd4aaa1a6db963eb59db14a6d39ffa96a0b78 Mon Sep 17 00:00:00 2001
+From 298a34850df88e1302e5fe9b0a7890734ce13fbf Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Fri, 22 May 2026 18:48:45 -0400
-Subject: [PATCH 31/39] Wire BrowserPane into the pane tree, persistence, and
+Subject: [PATCH 31/40] Wire BrowserPane into the pane tree, persistence, and
  layout (oh-my-warp)
 
 ---

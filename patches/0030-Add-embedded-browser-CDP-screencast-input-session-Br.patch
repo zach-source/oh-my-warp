@@ -1,7 +1,7 @@
-From c6de63e0403135dbdcb699b8055f5b63daca54c9 Mon Sep 17 00:00:00 2001
+From 5f8693763932c1d671faa42ec969ef431ce8a358 Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Fri, 22 May 2026 18:48:45 -0400
-Subject: [PATCH 30/39] Add embedded browser: CDP screencast/input session +
+Subject: [PATCH 30/40] Add embedded browser: CDP screencast/input session +
  BrowserView pane (oh-my-warp)
 
 ---
