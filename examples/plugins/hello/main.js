@@ -142,10 +142,30 @@ export function activate(warp) {
     "greet.menu",
     "Greet: Pick a Greeting (palette)",
     () => {
+      // Item schema: { label, command, icon?, description?, kbd? } — `icon` is rendered
+      // in a fixed-width column at the left, `description` as a dimmed subtitle below the
+      // label, and `kbd` as a monospace keystroke chip on the right. Fuzzy search across
+      // both label and description is built in.
       warp.ui.showPalette("Pick a greeting", [
-        { label: "👋 Wave", command: "greet.wave" },
-        { label: "🫡 Salute", command: "greet.salute" },
-        { label: "🎉 Celebrate", command: "greet.celebrate" },
+        {
+          icon: "👋",
+          label: "Wave",
+          description: "Casual hello",
+          command: "greet.wave",
+          kbd: "ctrl-b h",
+        },
+        {
+          icon: "🫡",
+          label: "Salute",
+          description: "More formal",
+          command: "greet.salute",
+        },
+        {
+          icon: "🎉",
+          label: "Celebrate",
+          description: "When you really mean it",
+          command: "greet.celebrate",
+        },
       ]);
     },
   );
@@ -160,4 +180,39 @@ export function activate(warp) {
       warp.ui.openWebTab("https://example.com");
     },
   );
+
+  // --- Tab-bar status pill via warp.ui.setStatusItem (M4) -----------------
+  // Pills live in the tab bar right of the leader indicator. Use them for live
+  // status the user should glance at (CI state, queue depth, billing). Item
+  // shape: { text, kind?, tooltip?, command? }. kind ∈ {info, success, warn,
+  // error, accent} maps to an ANSI theme color so the pill follows the active
+  // terminal theme.
+  //
+  // Identity is (plugin_id, item_id), so the same plugin can publish several
+  // independent pills. `null` (or empty text) removes one.
+  if (warp.ui.setStatusItem) {
+    warp.ui.setStatusItem("greet.status", {
+      text: "greet ✓",
+      kind: "success",
+      tooltip: "Hello plugin is active",
+      // Clicking the pill dispatches greet.menu (the showPalette demo).
+      command: "greet.menu",
+    });
+  }
+
+  // --- Themed prompt segments via warp.prompt (M4) ------------------------
+  // Prompt segments render as native chips in BOTH the terminal prompt and the
+  // agent input footer. Each segment carries an optional kind (color) and icon
+  // (sigil prefix). Empty segments clear them.
+  if (warp.prompt) {
+    warp.prompt.set([
+      {
+        text: "greet",
+        icon: "👋",
+        side: "right",
+        kind: "accent",
+        tooltip: "Hello plugin loaded",
+      },
+    ]);
+  }
 }

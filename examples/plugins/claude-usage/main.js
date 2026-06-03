@@ -231,10 +231,14 @@ export function activate(warp) {
       warp.prompt.clear();
       return;
     }
+    // kind picks the chip color from theme.ansi_fg_* so the chip follows the
+    // active terminal theme. `icon` renders as a short sigil prefix.
     warp.prompt.set([
       {
-        text: `claude ${cost}`,
+        text: cost,
+        icon: "🧠",
         side: "right",
+        kind: "accent",
         tooltip: "Claude usage today (ccusage)",
       },
     ]);

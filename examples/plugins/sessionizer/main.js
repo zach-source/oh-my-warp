@@ -111,10 +111,14 @@ export function activate(warp) {
         return;
       }
       // Each item opens its project via the app-side sentinel (switch-or-create).
+      // `description` shows the full path under the bold project name; the picker
+      // fuzzy-matches against both, so typing a path fragment works too.
       warp.ui.showPalette(
         "Switch to project",
         projects.map((p) => ({
+          icon: "📁",
           label: p.name,
+          description: p.path,
           command: `warp:openProject:${p.path}`,
         })),
       );
