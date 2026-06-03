@@ -40,3 +40,8 @@
 0038-Leader-chord-ctrl-b-s-toggle-broadcast-input-tmux-sy.patch
 0039-Add-warp.ui.openProject-path-switch-to-an-existing-t.patch
 0040-Add-warp.prompt-plugin-contributed-native-prompt-seg.patch
+0041-warp.prompt-render-plugin-segments-in-the-agent-inpu.patch
+0042-Add-rich-items-fuzzy-search-to-warp.ui.showPalette-o.patch
+0043-Polish-warp.ui.showMarkdown-modal-oh-my-warp.patch
+0044-warp.prompt-themed-kind-icon-for-plugin-prompt-segme.patch
+0045-Add-warp.ui.setStatusItem-id-item-plugin-status-pill.patch

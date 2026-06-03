@@ -1,7 +1,7 @@
-From 027d7f3edbd46726ab6fd740fa3a7999b383a5ca Mon Sep 17 00:00:00 2001
+From cfd109f19f62060e5ab4aec991fdd477fb7dc1ff Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Fri, 22 May 2026 00:02:51 -0400
-Subject: [PATCH 27/40] Add warp.ui.showMarkdown: render plugin markdown in a
+Subject: [PATCH 27/45] Add warp.ui.showMarkdown: render plugin markdown in a
  modal panel (oh-my-warp)
 
 ---
