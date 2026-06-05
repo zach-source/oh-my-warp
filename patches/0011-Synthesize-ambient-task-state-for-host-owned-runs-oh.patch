@@ -1,7 +1,7 @@
-From f50ae7d833214eab6594f4af7ae39a5e51bd0333 Mon Sep 17 00:00:00 2001
+From 093e0707ac4bbc8b56d2240f3eb84705ee4bfb0d Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Thu, 21 May 2026 00:06:01 -0400
-Subject: [PATCH 11/45] Synthesize ambient task state for host-owned runs
+Subject: [PATCH 11/46] Synthesize ambient task state for host-owned runs
  (oh-my-warp)
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8

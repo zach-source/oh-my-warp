@@ -1,7 +1,7 @@
-From fe44384339c18faf075473d524bf81309158ef2a Mon Sep 17 00:00:00 2001
+From 144d36d4499145f6967bbbfb0ca0dc4e12f595d0 Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Fri, 22 May 2026 18:48:45 -0400
-Subject: [PATCH 31/45] Wire BrowserPane into the pane tree, persistence, and
+Subject: [PATCH 31/46] Wire BrowserPane into the pane tree, persistence, and
  layout (oh-my-warp)
 
 ---
@@ -53,10 +53,10 @@ index 988bb133..f3d3ad6e 100644
                  | LeafContents::AIDocument(_)
                  | LeafContents::EnvironmentManagement(_)
 diff --git a/app/src/pane_group/mod.rs b/app/src/pane_group/mod.rs
-index 8c9827d7..76d3894a 100644
+index 7c51ca45..26611175 100644
 --- a/app/src/pane_group/mod.rs
 +++ b/app/src/pane_group/mod.rs
-@@ -168,6 +168,7 @@ mod tests;
+@@ -178,6 +178,7 @@ mod tests;
  
  pub use pane::ai_document_pane::AIDocumentPane;
  pub use pane::ai_fact_pane::AIFactPane;
@@ -64,7 +64,7 @@ index 8c9827d7..76d3894a 100644
  pub use pane::code_diff_pane::CodeDiffPane;
  pub use pane::code_pane::CodePane;
  pub use pane::env_var_collection_pane::EnvVarCollectionPane;
-@@ -1927,6 +1928,21 @@ impl PaneGroup {
+@@ -1948,6 +1949,21 @@ impl PaneGroup {
                      "Network log pane should not have been persisted, as it cannot be restored"
                  ))
              }
@@ -288,10 +288,10 @@ index 8d50285f..2435c248 100644
                  .on_mouse_in(
                      move |ctx, _, _| {
 diff --git a/app/src/persistence/sqlite.rs b/app/src/persistence/sqlite.rs
-index b8f8bc77..7b4dd253 100644
+index b0840c1a..9114e58c 100644
 --- a/app/src/persistence/sqlite.rs
 +++ b/app/src/persistence/sqlite.rs
-@@ -1109,7 +1109,9 @@ fn save_pane_state(
+@@ -1096,7 +1096,9 @@ fn save_pane_state(
          LeafContents::GetStarted => GET_STARTED_PANE_KIND,
          LeafContents::Welcome { .. } => WELCOME_PANE_KIND,
          LeafContents::AIDocument(_) => AI_DOCUMENT_PANE_KIND,
@@ -302,7 +302,7 @@ index b8f8bc77..7b4dd253 100644
              // These pane types are filtered out before this function is
              // called; see `LeafContents::is_persisted` and the skip in
              // `save_app_state`. Reaching this arm would mean a `pane_nodes`
-@@ -1351,6 +1353,9 @@ fn save_pane_state(
+@@ -1338,6 +1340,9 @@ fn save_pane_state(
          LeafContents::NetworkLog => {
              // Unreachable: filtered by `is_persisted` in `save_app_state`.
          }
@@ -313,10 +313,10 @@ index b8f8bc77..7b4dd253 100644
  
      Ok(())
 diff --git a/app/src/workspace/view/vertical_tabs.rs b/app/src/workspace/view/vertical_tabs.rs
-index 1e387fdc..96a9287f 100644
+index f8d9f605..b8219774 100644
 --- a/app/src/workspace/view/vertical_tabs.rs
 +++ b/app/src/workspace/view/vertical_tabs.rs
-@@ -3247,6 +3247,7 @@ impl PaneGroup {
+@@ -3759,6 +3759,7 @@ impl PaneGroup {
              IPaneType::ExecutionProfileEditor => TypedPane::ExecutionProfileEditor,
              IPaneType::GetStarted
              | IPaneType::NetworkLog

@@ -1,7 +1,7 @@
-From 161e80fa0c89a57efc1f8d8bb565c559a5a1bee4 Mon Sep 17 00:00:00 2001
+From 2719e47809d5ad940362b62aa801be94d9331fd5 Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Wed, 27 May 2026 14:06:16 -0400
-Subject: [PATCH 40/45] Add warp.prompt: plugin-contributed native prompt
+Subject: [PATCH 40/46] Add warp.prompt: plugin-contributed native prompt
  segments (oh-my-warp)
 
 Lets a plugin push segments into Warp's native prompt chip row via
@@ -90,7 +90,7 @@ index 9dfe3783..733492ba 100644
          Container::new(
              Clipped::new(
 diff --git a/app/src/context_chips/mod.rs b/app/src/context_chips/mod.rs
-index 644d295a..340bc0a1 100644
+index bc621109..d25c5348 100644
 --- a/app/src/context_chips/mod.rs
 +++ b/app/src/context_chips/mod.rs
 @@ -9,6 +9,7 @@ pub mod display_menu;
@@ -206,19 +206,19 @@ index 00000000..f4b1a2ee
 +
 +impl SingletonEntity for PluginPromptModel {}
 diff --git a/app/src/lib.rs b/app/src/lib.rs
-index 9e3cd875..8a65b27d 100644
+index 9e2e1c12..a981991b 100644
 --- a/app/src/lib.rs
 +++ b/app/src/lib.rs
-@@ -1735,6 +1735,9 @@ pub(crate) fn initialize_app(
-     ctx.add_singleton_model(BlocklistAIPermissions::new);
-     ctx.add_singleton_model(ai::blocklist::orchestration_events::OrchestrationEventService::new);
-     ctx.add_singleton_model(ai::blocklist::task_status_sync_model::TaskStatusSyncModel::new);
+@@ -1788,6 +1788,9 @@ pub(crate) fn initialize_app(
+     ctx.add_singleton_model(
+         ai::blocklist::local_agent_task_sync_model::LocalAgentTaskSyncModel::new,
+     );
 +    // oh-my-warp: holds plugin-contributed prompt segments (`warp.prompt.set`). Registered
 +    // unconditionally so the prompt render path never depends on the plugin host being built in.
 +    ctx.add_singleton_model(|_| crate::context_chips::plugin_prompt::PluginPromptModel::new());
-     if warp_core::features::FeatureFlag::OrchestrationV2.is_enabled() {
-         ctx.add_singleton_model(
-             ai::blocklist::orchestration_event_streamer::OrchestrationEventStreamer::new,
+     ctx.add_singleton_model(
+         ai::blocklist::orchestration_event_streamer::OrchestrationEventStreamer::new,
+     );
 diff --git a/app/src/plugin/app/mod.rs b/app/src/plugin/app/mod.rs
 index 0e8d2279..274b853f 100644
 --- a/app/src/plugin/app/mod.rs
@@ -366,10 +366,10 @@ index da6181b7..1414a290 100644
  ///
  /// `bind(commandId: string, keys: string)` — binds a key sequence (e.g. `"ctrl-b g"`) to a
 diff --git a/app/src/workspace/view.rs b/app/src/workspace/view.rs
-index 375d7211..472f8347 100644
+index 29f63848..0ead4b1b 100644
 --- a/app/src/workspace/view.rs
 +++ b/app/src/workspace/view.rs
-@@ -2042,6 +2042,17 @@ impl Workspace {
+@@ -2166,6 +2166,17 @@ impl Workspace {
                  // switch-or-create).
                  me.open_or_focus_project(path, ctx);
              }

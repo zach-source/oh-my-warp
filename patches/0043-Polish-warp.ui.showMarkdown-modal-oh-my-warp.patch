@@ -1,7 +1,7 @@
-From 8215492ea731c31f78de6b9e3973508f596763dc Mon Sep 17 00:00:00 2001
+From 5822dc69a0f176c7b2edc75d1cd815fdb608fb46 Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Tue, 2 Jun 2026 22:49:11 -0400
-Subject: [PATCH 43/45] Polish warp.ui.showMarkdown modal (oh-my-warp)
+Subject: [PATCH 43/46] Polish warp.ui.showMarkdown modal (oh-my-warp)
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
@@ -28,10 +28,10 @@ same; only its presentation improves.
  2 files changed, 66 insertions(+), 17 deletions(-)
 
 diff --git a/app/src/workspace/view.rs b/app/src/workspace/view.rs
-index 472f8347..b2ca2be6 100644
+index 0ead4b1b..ac466a2f 100644
 --- a/app/src/workspace/view.rs
 +++ b/app/src/workspace/view.rs
-@@ -1931,11 +1931,23 @@ impl Workspace {
+@@ -2055,11 +2055,23 @@ impl Workspace {
      ) -> ModalViewState<Modal<PluginMarkdownModal>> {
          let body = ctx.add_view(PluginMarkdownModal::new);
          let modal = ctx.add_typed_action_view(|ctx| {

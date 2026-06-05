@@ -1,7 +1,7 @@
-From 19003207813eee1b6079e04f7b58c164f59f9899 Mon Sep 17 00:00:00 2001
+From 8a1685cdb5a84e3714728d60dbcfdd373aff6742 Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Mon, 25 May 2026 12:16:32 -0400
-Subject: [PATCH 37/45] Right-click menus: add 'Launch Web Pane' to terminal
+Subject: [PATCH 37/46] Right-click menus: add 'Launch Web Pane' to terminal
  pane and browser page context menus (oh-my-warp)
 
 ---
@@ -50,10 +50,10 @@ index 95697d5c..60568689 100644
      }
  }
 diff --git a/app/src/terminal/view.rs b/app/src/terminal/view.rs
-index 1cd21db7..7727e1f4 100644
+index 0503843e..e574fa3a 100644
 --- a/app/src/terminal/view.rs
 +++ b/app/src/terminal/view.rs
-@@ -16657,6 +16657,10 @@ impl TerminalView {
+@@ -17200,6 +17200,10 @@ impl TerminalView {
                          ctx,
                      ))
                      .into_item(),
@@ -64,7 +64,7 @@ index 1cd21db7..7727e1f4 100644
              ]);
          }
  
-@@ -25255,6 +25259,7 @@ impl TypedActionView for TerminalView {
+@@ -25905,6 +25909,7 @@ impl TypedActionView for TerminalView {
              | SplitLeft(_)
              | SplitDown(_)
              | SplitUp(_)
@@ -72,7 +72,7 @@ index 1cd21db7..7727e1f4 100644
              | OpenGridLink(_)
              | OpenRichContentLink(_)
              | ToggleGridSecret { .. }
-@@ -25643,6 +25648,12 @@ impl TypedActionView for TerminalView {
+@@ -26295,6 +26300,12 @@ impl TypedActionView for TerminalView {
              SplitUp(chosen_shell) => {
                  ctx.emit(Event::Pane(PaneEvent::SplitUp(chosen_shell.to_owned())))
              }
@@ -86,10 +86,10 @@ index 1cd21db7..7727e1f4 100644
              PromptContextMenu {
                  position_offset_from_prompt,
 diff --git a/app/src/terminal/view/action.rs b/app/src/terminal/view/action.rs
-index fcc458dc..77a75daa 100644
+index 8489e1db..141db773 100644
 --- a/app/src/terminal/view/action.rs
 +++ b/app/src/terminal/view/action.rs
-@@ -204,6 +204,10 @@ pub enum TerminalAction {
+@@ -205,6 +205,10 @@ pub enum TerminalAction {
      SplitLeft(Option<AvailableShell>),
      SplitDown(Option<AvailableShell>),
      SplitUp(Option<AvailableShell>),
@@ -100,7 +100,7 @@ index fcc458dc..77a75daa 100644
      /// The context menu that's used for the prompt directly above input editor
      PromptContextMenu {
          position_offset_from_prompt: Vector2F,
-@@ -554,6 +558,7 @@ impl fmt::Debug for TerminalAction {
+@@ -561,6 +565,7 @@ impl fmt::Debug for TerminalAction {
              SplitLeft(_) => f.write_str("SplitLeft"),
              SplitDown(_) => f.write_str("SplitDown"),
              SplitUp(_) => f.write_str("SplitUp"),

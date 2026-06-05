@@ -1,7 +1,7 @@
-From 723ce0c6a3eb8d4afc4945d8efa7d840521704de Mon Sep 17 00:00:00 2001
+From ffe107ad32dfa593d3c5f6f5d3b5924f224f2f93 Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Wed, 20 May 2026 11:51:24 -0400
-Subject: [PATCH 03/45] Show a leader-engaged indicator in the tab bar with
+Subject: [PATCH 03/46] Show a leader-engaged indicator in the tab bar with
  auto-cancel
 
 Surface the keymap matcher's in-progress multi-keystroke sequence so the UI
@@ -17,10 +17,10 @@ can tell when a tmux-style leader/prefix is armed:
  3 files changed, 110 insertions(+)
 
 diff --git a/app/src/workspace/view.rs b/app/src/workspace/view.rs
-index 636941c3..bf786260 100644
+index 859ef28c..16589f56 100644
 --- a/app/src/workspace/view.rs
 +++ b/app/src/workspace/view.rs
-@@ -18233,6 +18233,40 @@ impl Workspace {
+@@ -19228,6 +19228,40 @@ impl Workspace {
          .finish()
      }
  
@@ -61,7 +61,7 @@ index 636941c3..bf786260 100644
      fn render_tab_bar_contents(
          &self,
          hover_fixed_width: Option<f32>,
-@@ -18240,6 +18274,10 @@ impl Workspace {
+@@ -19235,6 +19269,10 @@ impl Workspace {
          ctx: &AppContext,
      ) -> Box<dyn Element> {
          let mut tab_bar = Flex::row().with_cross_axis_alignment(CrossAxisAlignment::Center);

@@ -1,7 +1,7 @@
-From cfd109f19f62060e5ab4aec991fdd477fb7dc1ff Mon Sep 17 00:00:00 2001
+From 03f506678ea10b0de1997dd29403b351454e6b37 Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Fri, 22 May 2026 00:02:51 -0400
-Subject: [PATCH 27/45] Add warp.ui.showMarkdown: render plugin markdown in a
+Subject: [PATCH 27/46] Add warp.ui.showMarkdown: render plugin markdown in a
  modal panel (oh-my-warp)
 
 ---
@@ -98,7 +98,7 @@ index 487d34b1..3ad691e0 100644
  
  /// Flag to be passed to the warp executable when executing the warp binary as the plugin host
 diff --git a/app/src/workspace/view.rs b/app/src/workspace/view.rs
-index dfa49128..f47d32e7 100644
+index a1a31fab..29c96283 100644
 --- a/app/src/workspace/view.rs
 +++ b/app/src/workspace/view.rs
 @@ -11,6 +11,7 @@ pub(crate) mod left_panel;
@@ -109,7 +109,7 @@ index dfa49128..f47d32e7 100644
  pub(crate) mod right_panel;
  mod startup_directory;
  #[cfg(test)]
-@@ -490,6 +491,7 @@ use crate::workspace::view::openwarp_launch_modal::{
+@@ -495,6 +496,7 @@ use crate::workspace::view::openwarp_launch_modal::{
  use crate::workspace::view::orchestration_launch_modal::{
      OrchestrationLaunchModal, OrchestrationLaunchModalEvent,
  };
@@ -117,7 +117,7 @@ index dfa49128..f47d32e7 100644
  use crate::workspace::view::right_panel::{RightPanelEvent, RightPanelView};
  use crate::workspace::{ForkFromExchange, ForkedConversationDestination};
  use crate::workspaces::user_workspaces::UserWorkspaces;
-@@ -978,6 +980,8 @@ pub struct Workspace {
+@@ -1000,6 +1002,8 @@ pub struct Workspace {
      pending_session_config_tab_config_chip_tutorial:
          Option<PendingSessionConfigTabConfigChipTutorial>,
      new_worktree_modal: ModalViewState<Modal<NewWorktreeModal>>,
@@ -126,7 +126,7 @@ index dfa49128..f47d32e7 100644
      close_session_confirmation_dialog: ViewHandle<CloseSessionConfirmationDialog>,
      rewind_confirmation_dialog: ViewHandle<RewindConfirmationDialog>,
      delete_conversation_confirmation_dialog: ViewHandle<DeleteConversationConfirmationDialog>,
-@@ -1916,6 +1920,60 @@ impl Workspace {
+@@ -2040,6 +2044,60 @@ impl Workspace {
          ModalViewState::new(modal)
      }
  
@@ -187,7 +187,7 @@ index dfa49128..f47d32e7 100644
      fn build_new_worktree_modal(
          ctx: &mut ViewContext<Self>,
      ) -> ModalViewState<Modal<NewWorktreeModal>> {
-@@ -2728,6 +2786,7 @@ impl Workspace {
+@@ -2856,6 +2914,7 @@ impl Workspace {
  
          let tab_config_params_modal = Self::build_tab_config_params_modal(ctx);
          let new_worktree_modal = Self::build_new_worktree_modal(ctx);
@@ -195,7 +195,7 @@ index dfa49128..f47d32e7 100644
  
          let session_config_modal = Self::build_session_config_modal(ctx);
  
-@@ -2974,6 +3033,9 @@ impl Workspace {
+@@ -3102,6 +3161,9 @@ impl Workspace {
          Self::observe_server_api(ctx);
  
          Self::subscribe_to_workspace_toast_stack(toast_stack.clone(), ctx);
@@ -205,7 +205,7 @@ index dfa49128..f47d32e7 100644
          Self::subscribe_to_tab_config_errors(toast_stack.clone(), ctx);
          Self::subscribe_to_settings_errors(ctx);
          Self::subscribe_to_shared_session_manager(ctx);
-@@ -3111,6 +3173,7 @@ impl Workspace {
+@@ -3243,6 +3305,7 @@ impl Workspace {
              show_session_config_tab_config_chip: false,
              pending_session_config_tab_config_chip_tutorial: None,
              new_worktree_modal,
@@ -213,7 +213,7 @@ index dfa49128..f47d32e7 100644
              close_session_confirmation_dialog,
              rewind_confirmation_dialog,
              delete_conversation_confirmation_dialog,
-@@ -23995,6 +24058,11 @@ impl View for Workspace {
+@@ -25277,6 +25340,11 @@ impl View for Workspace {
              stack.add_child(self.new_worktree_modal.render());
          }
  

@@ -1,7 +1,7 @@
-From d63509bdf183bab62325afffe00ea674a1f450d0 Mon Sep 17 00:00:00 2001
+From dc0f97dc7cee04fbcea09423cf97953cd2acf6c0 Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Wed, 20 May 2026 13:03:05 -0400
-Subject: [PATCH 07/45] Add Settings dropdown to select the active backend
+Subject: [PATCH 07/46] Add Settings dropdown to select the active backend
 
 BackendSelectorView (a Dropdown mirroring StartupShellView) lists 'Warp
 (Default)' + the configured backends and persists the choice via
@@ -125,10 +125,10 @@ index 7c254074..9c862e8e 100644
  pub use undo_close::UndoCloseView;
  
 diff --git a/app/src/settings_view/features_page.rs b/app/src/settings_view/features_page.rs
-index a07e6b9e..3733ba6e 100644
+index 6c79a76d..c655c333 100644
 --- a/app/src/settings_view/features_page.rs
 +++ b/app/src/settings_view/features_page.rs
-@@ -1210,6 +1210,8 @@ pub struct FeaturesPageView {
+@@ -1400,6 +1400,8 @@ pub struct FeaturesPageView {
      #[cfg(feature = "local_tty")]
      startup_shell_view: ViewHandle<features::StartupShellView>,
      undo_close_view: ViewHandle<features::UndoCloseView>,
@@ -137,7 +137,7 @@ index a07e6b9e..3733ba6e 100644
  
      max_block_size_input_editor: ViewHandle<EditorView>,
      valid_max_block_size: bool,
-@@ -2185,6 +2187,7 @@ impl FeaturesPageView {
+@@ -2409,6 +2411,7 @@ impl FeaturesPageView {
          let startup_shell_view = ctx.add_typed_action_view(features::StartupShellView::new);
  
          let undo_close_view = ctx.add_typed_action_view(features::UndoCloseView::new);
@@ -145,7 +145,7 @@ index a07e6b9e..3733ba6e 100644
  
          let appearance_handle = Appearance::handle(ctx);
  
-@@ -2390,6 +2393,7 @@ impl FeaturesPageView {
+@@ -2614,6 +2617,7 @@ impl FeaturesPageView {
              #[cfg(feature = "local_tty")]
              startup_shell_view,
              undo_close_view,
@@ -153,7 +153,7 @@ index a07e6b9e..3733ba6e 100644
  
              max_block_size_input_editor: block_size_editor,
              valid_max_block_size: true,
-@@ -2447,6 +2451,8 @@ impl FeaturesPageView {
+@@ -2672,6 +2676,8 @@ impl FeaturesPageView {
  
          general_widgets.push(Box::new(SnackbarHeaderWidget::default()));
          general_widgets.push(Box::new(LinkTooltipWidget::default()));
@@ -162,7 +162,7 @@ index a07e6b9e..3733ba6e 100644
  
          #[cfg(feature = "local_fs")]
          {
-@@ -5117,6 +5123,36 @@ impl SettingsWidget for DesktopNotificationsWidget {
+@@ -5396,6 +5402,36 @@ impl SettingsWidget for DesktopNotificationsWidget {
      }
  }
  

@@ -1,7 +1,7 @@
-From f91129364661a8f346a7c11f80eb168982dd79af Mon Sep 17 00:00:00 2001
+From af0cef575eb2f742c2728809d8de217e6dcb1497 Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Fri, 22 May 2026 00:11:24 -0400
-Subject: [PATCH 28/45] Add warp.ui.showPalette: plugin-driven picker running
+Subject: [PATCH 28/46] Add warp.ui.showPalette: plugin-driven picker running
  item commands (oh-my-warp)
 
 ---
@@ -126,7 +126,7 @@ index 23434bd0..b7cbf546 100644
  }
  
 diff --git a/app/src/workspace/view.rs b/app/src/workspace/view.rs
-index f47d32e7..049bc420 100644
+index 29c96283..6471a6d5 100644
 --- a/app/src/workspace/view.rs
 +++ b/app/src/workspace/view.rs
 @@ -12,6 +12,7 @@ pub(crate) mod onboarding;
@@ -137,7 +137,7 @@ index f47d32e7..049bc420 100644
  pub(crate) mod right_panel;
  mod startup_directory;
  #[cfg(test)]
-@@ -492,6 +493,7 @@ use crate::workspace::view::orchestration_launch_modal::{
+@@ -497,6 +498,7 @@ use crate::workspace::view::orchestration_launch_modal::{
      OrchestrationLaunchModal, OrchestrationLaunchModalEvent,
  };
  use crate::workspace::view::plugin_markdown_modal::PluginMarkdownModal;
@@ -145,7 +145,7 @@ index f47d32e7..049bc420 100644
  use crate::workspace::view::right_panel::{RightPanelEvent, RightPanelView};
  use crate::workspace::{ForkFromExchange, ForkedConversationDestination};
  use crate::workspaces::user_workspaces::UserWorkspaces;
-@@ -982,6 +984,8 @@ pub struct Workspace {
+@@ -1004,6 +1006,8 @@ pub struct Workspace {
      new_worktree_modal: ModalViewState<Modal<NewWorktreeModal>>,
      // oh-my-warp: modal that renders markdown a plugin requested via `warp.ui.showMarkdown` (M4).
      plugin_markdown_modal: ModalViewState<Modal<PluginMarkdownModal>>,
@@ -154,7 +154,7 @@ index f47d32e7..049bc420 100644
      close_session_confirmation_dialog: ViewHandle<CloseSessionConfirmationDialog>,
      rewind_confirmation_dialog: ViewHandle<RewindConfirmationDialog>,
      delete_conversation_confirmation_dialog: ViewHandle<DeleteConversationConfirmationDialog>,
-@@ -1962,6 +1966,57 @@ impl Workspace {
+@@ -2086,6 +2090,57 @@ impl Workspace {
          ctx.notify();
      }
  
@@ -212,7 +212,7 @@ index f47d32e7..049bc420 100644
      /// Subscribes to [`crate::plugin::PluginHostEvent`]s so plugin UI requests can open
      /// workspace-owned surfaces (e.g. the markdown modal). See PLUGIN_SPEC.md (M4).
      #[cfg(feature = "plugin_host")]
-@@ -1971,6 +2026,9 @@ impl Workspace {
+@@ -2095,6 +2150,9 @@ impl Workspace {
              crate::plugin::PluginHostEvent::ShowMarkdown { title, markdown } => {
                  me.show_plugin_markdown(title.clone(), markdown.clone(), ctx);
              }
@@ -222,7 +222,7 @@ index f47d32e7..049bc420 100644
          });
      }
  
-@@ -2787,6 +2845,7 @@ impl Workspace {
+@@ -2915,6 +2973,7 @@ impl Workspace {
          let tab_config_params_modal = Self::build_tab_config_params_modal(ctx);
          let new_worktree_modal = Self::build_new_worktree_modal(ctx);
          let plugin_markdown_modal = Self::build_plugin_markdown_modal(ctx);
@@ -230,7 +230,7 @@ index f47d32e7..049bc420 100644
  
          let session_config_modal = Self::build_session_config_modal(ctx);
  
-@@ -3174,6 +3233,7 @@ impl Workspace {
+@@ -3306,6 +3365,7 @@ impl Workspace {
              pending_session_config_tab_config_chip_tutorial: None,
              new_worktree_modal,
              plugin_markdown_modal,
@@ -238,7 +238,7 @@ index f47d32e7..049bc420 100644
              close_session_confirmation_dialog,
              rewind_confirmation_dialog,
              delete_conversation_confirmation_dialog,
-@@ -24063,6 +24123,11 @@ impl View for Workspace {
+@@ -25345,6 +25405,11 @@ impl View for Workspace {
              stack.add_child(self.plugin_markdown_modal.render());
          }
  

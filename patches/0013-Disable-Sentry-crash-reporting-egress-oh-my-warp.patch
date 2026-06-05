@@ -1,7 +1,7 @@
-From 3eaf9f20c717c1a34bfa93ffd8ed4d714926a8cf Mon Sep 17 00:00:00 2001
+From 31c36d3fcbb92eb214c723ccd9ee5067fe6902b5 Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Thu, 21 May 2026 08:38:00 -0400
-Subject: [PATCH 13/45] Disable Sentry crash-reporting egress (oh-my-warp)
+Subject: [PATCH 13/46] Disable Sentry crash-reporting egress (oh-my-warp)
 
 Force an empty DSN in sentry_client_options() so the Sentry Rust SDK and the
 minidump server initialize disabled and never transmit crash reports/errors.
@@ -13,7 +13,7 @@ defensive guard for builds that enable it. Note: native macOS cocoa_sentry
  1 file changed, 5 insertions(+), 4 deletions(-)
 
 diff --git a/app/src/crash_reporting/mod.rs b/app/src/crash_reporting/mod.rs
-index b71028da..ede6fd20 100644
+index 1bd7d6b5..0626867f 100644
 --- a/app/src/crash_reporting/mod.rs
 +++ b/app/src/crash_reporting/mod.rs
 @@ -14,7 +14,7 @@ use std::sync::Arc;

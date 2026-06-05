@@ -1,7 +1,7 @@
-From d05e92759103f6c38b4e25563c3c534500254f14 Mon Sep 17 00:00:00 2001
+From 5f5ee8c2bab7c5cbe0d4b212e8521a8d5e9add33 Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Thu, 21 May 2026 11:56:44 -0400
-Subject: [PATCH 19/45] Add warp.terminal command-lifecycle events (oh-my-warp)
+Subject: [PATCH 19/46] Add warp.terminal command-lifecycle events (oh-my-warp)
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
@@ -416,10 +416,10 @@ index 76db3940..9ee43c5c 100644
  pub use logging::*;
  pub use plugin_host_bootstrap::*;
 diff --git a/app/src/terminal/view.rs b/app/src/terminal/view.rs
-index 1629767f..1cd21db7 100644
+index 9d59a922..0503843e 100644
 --- a/app/src/terminal/view.rs
 +++ b/app/src/terminal/view.rs
-@@ -11030,6 +11030,21 @@ impl TerminalView {
+@@ -11740,6 +11740,21 @@ impl TerminalView {
                  }
                  self.did_notify_long_running = false;
  
@@ -441,7 +441,7 @@ index 1629767f..1cd21db7 100644
                  // Snapshot the prompt state as of when the command began executing.
                  // Commands may themselves affect the prompt (if running `git checkout`), for
                  // example, so we want the saved prompt state to match what the user saw when
-@@ -11393,6 +11408,30 @@ impl TerminalView {
+@@ -12148,6 +12163,30 @@ impl TerminalView {
                  }
  
                  if let BlockType::User(block_completed) = block_type {
@@ -472,7 +472,7 @@ index 1629767f..1cd21db7 100644
                      if let Some(block_duration) =
                          self.block_duration(&block_completed.serialized_block)
                      {
-@@ -15076,6 +15115,65 @@ impl TerminalView {
+@@ -15606,6 +15645,65 @@ impl TerminalView {
          }
      }
  

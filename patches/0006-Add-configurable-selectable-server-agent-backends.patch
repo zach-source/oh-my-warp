@@ -1,7 +1,7 @@
-From 537272006f55ba46e9348986ee295673002d0548 Mon Sep 17 00:00:00 2001
+From 1b683622e2bbc8d559b1a0828cb0fc05d111a2d2 Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Wed, 20 May 2026 13:03:05 -0400
-Subject: [PATCH 06/45] Add configurable, selectable server/agent backends
+Subject: [PATCH 06/46] Add configurable, selectable server/agent backends
 
 New crate::util::agent_backends: an agent_backends.toml (in Warp's config dir)
 defining alternative backends (id/name/server_url/ws_url) plus a 'selected' id.
@@ -17,10 +17,10 @@ default when nothing is selected.
  create mode 100644 app/src/util/agent_backends.rs
 
 diff --git a/app/src/lib.rs b/app/src/lib.rs
-index 4882d9da..6564e9dd 100644
+index 1a446a0a..0170dfa6 100644
 --- a/app/src/lib.rs
 +++ b/app/src/lib.rs
-@@ -586,6 +586,13 @@ pub fn run() -> Result<()> {
+@@ -588,6 +588,13 @@ pub fn run() -> Result<()> {
      // Parse command-line arguments.
      let args = warp_cli::Args::from_env();
  

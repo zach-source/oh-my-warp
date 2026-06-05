@@ -1,7 +1,7 @@
-From 059f0a539c1bd30453f9cfe8954d7dffcecd8970 Mon Sep 17 00:00:00 2001
+From 34205b3987aa919eccdd185b25087e579d09d2b2 Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Fri, 22 May 2026 19:02:34 -0400
-Subject: [PATCH 33/45] Browser pane: page right-click context menu + sharper
+Subject: [PATCH 33/46] Browser pane: page right-click context menu + sharper
  screencast (oh-my-warp)
 
 ---

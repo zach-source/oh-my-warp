@@ -1,7 +1,7 @@
-From e72053487333cbdd0460946e234015a81fa09f01 Mon Sep 17 00:00:00 2001
+From 3e67063865589d330a1d8fc76791a6ec46315490 Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Thu, 21 May 2026 21:48:35 -0400
-Subject: [PATCH 24/45] Add warp.ai.registerTool: plugins expose in-process
+Subject: [PATCH 24/46] Add warp.ai.registerTool: plugins expose in-process
  tools to the AI agent (oh-my-warp)
 
 ---
@@ -22,10 +22,10 @@ Subject: [PATCH 24/45] Add warp.ai.registerTool: plugins expose in-process
  create mode 100644 app/src/plugin/service/tools.rs
 
 diff --git a/app/src/ai/agent/api.rs b/app/src/ai/agent/api.rs
-index 288dbe28..676052b5 100644
+index b40bd77d..8085e779 100644
 --- a/app/src/ai/agent/api.rs
 +++ b/app/src/ai/agent/api.rs
-@@ -152,6 +152,31 @@ pub struct ConversationData {
+@@ -153,6 +153,31 @@ pub struct ConversationData {
      pub existing_suggestions: Option<Suggestions>,
  }
  
@@ -57,7 +57,7 @@ index 288dbe28..676052b5 100644
  impl RequestParams {
      pub fn new(
          terminal_view_id: Option<EntityId>,
-@@ -193,7 +218,8 @@ impl RequestParams {
+@@ -194,7 +219,8 @@ impl RequestParams {
                      .values(),
              );
  
@@ -67,7 +67,7 @@ index 288dbe28..676052b5 100644
                  .into_iter()
                  .map(|server| MCPServer {
                      name: server.name().to_string(),
-@@ -204,6 +230,22 @@ impl RequestParams {
+@@ -205,6 +231,22 @@ impl RequestParams {
                  })
                  .collect();
  
@@ -90,7 +90,7 @@ index 288dbe28..676052b5 100644
              if servers.is_empty() {
                  None
              } else {
-@@ -221,7 +263,11 @@ impl RequestParams {
+@@ -222,7 +264,11 @@ impl RequestParams {
                  .resources()
                  .cloned()
                  .collect::<Vec<_>>();

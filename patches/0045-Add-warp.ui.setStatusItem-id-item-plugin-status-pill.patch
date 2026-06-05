@@ -1,7 +1,7 @@
-From 9f051fce0e5c54fa8d48403a9d65fcb09778fbe5 Mon Sep 17 00:00:00 2001
+From aa92ab06f4604012942b3d72610b4aa8cfde04f5 Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Wed, 3 Jun 2026 08:35:07 -0400
-Subject: [PATCH 45/45] Add warp.ui.setStatusItem(id, item): plugin status
+Subject: [PATCH 45/46] Add warp.ui.setStatusItem(id, item): plugin status
  pills in the tab bar (oh-my-warp)
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
@@ -50,10 +50,10 @@ Capability: 'ui' (same as toast / showMarkdown / showPalette / prompt).
  create mode 100644 app/src/workspace/plugin_status_items.rs
 
 diff --git a/app/src/lib.rs b/app/src/lib.rs
-index 8a65b27d..9b707ae2 100644
+index a981991b..518b7cfc 100644
 --- a/app/src/lib.rs
 +++ b/app/src/lib.rs
-@@ -1738,6 +1738,12 @@ pub(crate) fn initialize_app(
+@@ -1791,6 +1791,12 @@ pub(crate) fn initialize_app(
      // oh-my-warp: holds plugin-contributed prompt segments (`warp.prompt.set`). Registered
      // unconditionally so the prompt render path never depends on the plugin host being built in.
      ctx.add_singleton_model(|_| crate::context_chips::plugin_prompt::PluginPromptModel::new());
@@ -63,9 +63,9 @@ index 8a65b27d..9b707ae2 100644
 +    ctx.add_singleton_model(|_| {
 +        crate::workspace::plugin_status_items::PluginStatusItemsModel::new()
 +    });
-     if warp_core::features::FeatureFlag::OrchestrationV2.is_enabled() {
-         ctx.add_singleton_model(
-             ai::blocklist::orchestration_event_streamer::OrchestrationEventStreamer::new,
+     ctx.add_singleton_model(
+         ai::blocklist::orchestration_event_streamer::OrchestrationEventStreamer::new,
+     );
 diff --git a/app/src/plugin/app/mod.rs b/app/src/plugin/app/mod.rs
 index 274b853f..12794780 100644
 --- a/app/src/plugin/app/mod.rs
@@ -211,7 +211,7 @@ index 2f0c2c60..8a95af61 100644
  ///
  /// `set(segments)` — `segments` is `[{ text, side?, tooltip? }]` (`side`: `"left"` | `"right"`,
 diff --git a/app/src/workspace/mod.rs b/app/src/workspace/mod.rs
-index 62cd0cfd..5bc0450b 100644
+index 09a68c1f..536cf5a9 100644
 --- a/app/src/workspace/mod.rs
 +++ b/app/src/workspace/mod.rs
 @@ -15,6 +15,8 @@ mod home;
@@ -445,10 +445,10 @@ index 00000000..913fc0bb
 +    Some(row.finish())
 +}
 diff --git a/app/src/workspace/view.rs b/app/src/workspace/view.rs
-index b2ca2be6..737cd7fb 100644
+index ac466a2f..6cc44ae0 100644
 --- a/app/src/workspace/view.rs
 +++ b/app/src/workspace/view.rs
-@@ -2065,6 +2065,20 @@ impl Workspace {
+@@ -2189,6 +2189,20 @@ impl Workspace {
                          model.set(plugin_id.clone(), segments.clone(), ctx)
                      });
              }
@@ -469,7 +469,7 @@ index b2ca2be6..737cd7fb 100644
          });
      }
  
-@@ -2806,6 +2820,16 @@ impl Workspace {
+@@ -2934,6 +2948,16 @@ impl Workspace {
              ctx.notify();
          });
  
@@ -486,7 +486,7 @@ index b2ca2be6..737cd7fb 100644
          let changelog_model = ChangelogModel::handle(ctx);
          ctx.subscribe_to_model(&changelog_model, |me, _, event, ctx| {
              me.handle_changelog_event(event, ctx);
-@@ -18511,6 +18535,13 @@ impl Workspace {
+@@ -19506,6 +19530,13 @@ impl Workspace {
          if let Some(indicator) = self.render_leader_indicator(appearance, ctx) {
              tab_bar.add_child(indicator);
          }

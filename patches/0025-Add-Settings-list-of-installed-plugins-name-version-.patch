@@ -1,7 +1,7 @@
-From c89093450ff6ef81cc21306c1ef9096f81d191da Mon Sep 17 00:00:00 2001
+From c8aae1403c50ee016a0ad032b23582befa62cdcd Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Thu, 21 May 2026 22:41:31 -0400
-Subject: [PATCH 25/45] Add Settings list of installed plugins (name, version,
+Subject: [PATCH 25/46] Add Settings list of installed plugins (name, version,
  permissions) (oh-my-warp)
 
 ---
@@ -115,10 +115,10 @@ index 4bd466c9..487d34b1 100644
  
  #[cfg_attr(not(target_family = "wasm"), path = "host/native/mod.rs")]
 diff --git a/app/src/settings_view/features_page.rs b/app/src/settings_view/features_page.rs
-index 3cd6866b..fe1cdc2e 100644
+index f92c774c..35f8dbc1 100644
 --- a/app/src/settings_view/features_page.rs
 +++ b/app/src/settings_view/features_page.rs
-@@ -2460,6 +2460,9 @@ impl FeaturesPageView {
+@@ -2685,6 +2685,9 @@ impl FeaturesPageView {
          general_widgets.push(Box::new(BackendSelectorWidget::default()));
          // oh-my-warp: "Agent harness (gRPC)" selector row.
          general_widgets.push(Box::new(GrpcHarnessSelectorWidget::default()));
@@ -128,7 +128,7 @@ index 3cd6866b..fe1cdc2e 100644
  
          #[cfg(feature = "local_fs")]
          {
-@@ -5130,6 +5133,74 @@ impl SettingsWidget for DesktopNotificationsWidget {
+@@ -5409,6 +5412,74 @@ impl SettingsWidget for DesktopNotificationsWidget {
      }
  }
  

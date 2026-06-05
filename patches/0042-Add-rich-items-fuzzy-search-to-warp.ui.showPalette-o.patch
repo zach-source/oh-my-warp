@@ -1,7 +1,7 @@
-From 329d8e6410d0154c234ce4c776cbe0cefdd823fd Mon Sep 17 00:00:00 2001
+From 2bbb4ed699a65d2ab0e4bf6adb2a6efe8a999bfc Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Tue, 2 Jun 2026 22:46:22 -0400
-Subject: [PATCH 42/45] Add rich items + fuzzy search to warp.ui.showPalette
+Subject: [PATCH 42/46] Add rich items + fuzzy search to warp.ui.showPalette
  (oh-my-warp)
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8

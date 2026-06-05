@@ -1,7 +1,7 @@
-From 3af0f09febb9fb6fdedc4f5a5f09774bb7a72ca8 Mon Sep 17 00:00:00 2001
+From a148a6421752f74b6389db29804947be1de0adc0 Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Wed, 20 May 2026 22:48:46 -0400
-Subject: [PATCH 09/45] Add in-process gRPC agent bridge (oh-my-warp)
+Subject: [PATCH 09/46] Add in-process gRPC agent bridge (oh-my-warp)
 
 Routes Warp's agent control ops to a custom gRPC harness host when a gRPC
 backend is selected (agent_backends Backend.grpc_endpoint/harness/token).
@@ -33,7 +33,7 @@ backend is selected (agent_backends Backend.grpc_endpoint/harness/token).
  create mode 100644 crates/warp_agent_grpc/src/lib.rs
 
 diff --git a/Cargo.lock b/Cargo.lock
-index 30abbdf3..c09c52f0 100644
+index 7983b6a9..36fcd458 100644
 --- a/Cargo.lock
 +++ b/Cargo.lock
 @@ -343,7 +343,7 @@ dependencies = [
@@ -183,7 +183,7 @@ index 30abbdf3..c09c52f0 100644
  ]
  
  [[package]]
-@@ -4758,7 +4805,7 @@ dependencies = [
+@@ -4847,7 +4894,7 @@ dependencies = [
   "itertools 0.14.0",
   "prost 0.14.3",
   "prost-reflect",
@@ -192,7 +192,7 @@ index 30abbdf3..c09c52f0 100644
   "thiserror 2.0.17",
  ]
  
-@@ -6217,10 +6264,10 @@ dependencies = [
+@@ -6306,10 +6353,10 @@ dependencies = [
  name = "http_server"
  version = "0.0.0"
  dependencies = [
@@ -203,9 +203,9 @@ index 30abbdf3..c09c52f0 100644
 - "tower",
 + "tower 0.5.2",
   "tower-http",
-  "warpui",
- ]
-@@ -6292,6 +6339,19 @@ dependencies = [
+  "warp_core",
+  "warpui_core",
+@@ -6382,6 +6429,19 @@ dependencies = [
   "tower-service",
  ]
  
@@ -225,7 +225,7 @@ index 30abbdf3..c09c52f0 100644
  [[package]]
  name = "hyper-util"
  version = "0.1.16"
-@@ -7766,6 +7826,12 @@ dependencies = [
+@@ -7868,6 +7928,12 @@ dependencies = [
   "regex-automata",
  ]
  
@@ -238,7 +238,7 @@ index 30abbdf3..c09c52f0 100644
  [[package]]
  name = "matchit"
  version = "0.8.4"
-@@ -7883,7 +7949,7 @@ source = "git+https://github.com/warpdotdev/mermaid-to-svg.git?rev=81551775746cd
+@@ -8000,7 +8066,7 @@ source = "git+https://github.com/warpdotdev/mermaid-to-svg.git?rev=40cecf2be376e
  dependencies = [
   "dagre_rust",
   "graphlib_rust",
@@ -247,7 +247,7 @@ index 30abbdf3..c09c52f0 100644
   "regex",
   "serde_yaml 0.9.34+deprecated",
   "thiserror 1.0.63",
-@@ -9468,6 +9534,16 @@ dependencies = [
+@@ -9584,6 +9650,16 @@ dependencies = [
   "warp_multi_agent_api",
  ]
  
@@ -264,7 +264,7 @@ index 30abbdf3..c09c52f0 100644
  [[package]]
  name = "petgraph"
  version = "0.8.3"
-@@ -9994,6 +10070,26 @@ dependencies = [
+@@ -10110,6 +10186,26 @@ dependencies = [
   "prost-derive 0.14.3",
  ]
  
@@ -291,7 +291,7 @@ index 30abbdf3..c09c52f0 100644
  [[package]]
  name = "prost-build"
  version = "0.14.3"
-@@ -10004,10 +10100,10 @@ dependencies = [
+@@ -10120,10 +10216,10 @@ dependencies = [
   "itertools 0.14.0",
   "log",
   "multimap",
@@ -304,7 +304,7 @@ index 30abbdf3..c09c52f0 100644
   "regex",
   "syn 2.0.117",
   "tempfile",
-@@ -10047,7 +10143,7 @@ checksum = "b89455ef41ed200cafc47c76c552ee7792370ac420497e551f16123a9135f76e"
+@@ -10163,7 +10259,7 @@ checksum = "b89455ef41ed200cafc47c76c552ee7792370ac420497e551f16123a9135f76e"
  dependencies = [
   "prost 0.14.3",
   "prost-reflect-derive",
@@ -313,7 +313,7 @@ index 30abbdf3..c09c52f0 100644
  ]
  
  [[package]]
-@@ -10056,7 +10152,7 @@ version = "0.16.0"
+@@ -10172,7 +10268,7 @@ version = "0.16.0"
  source = "registry+https://github.com/rust-lang/crates.io-index"
  checksum = "8214ae2c30bbac390db0134d08300e770ef89b6d4e5abf855e8d300eded87e28"
  dependencies = [
@@ -322,7 +322,7 @@ index 30abbdf3..c09c52f0 100644
   "prost-reflect",
  ]
  
-@@ -10071,6 +10167,15 @@ dependencies = [
+@@ -10187,6 +10283,15 @@ dependencies = [
   "syn 2.0.117",
  ]
  
@@ -338,7 +338,7 @@ index 30abbdf3..c09c52f0 100644
  [[package]]
  name = "prost-types"
  version = "0.14.3"
-@@ -10726,7 +10831,7 @@ dependencies = [
+@@ -10842,7 +10947,7 @@ dependencies = [
   "getrandom 0.2.16",
   "log",
   "prost 0.14.3",
@@ -347,7 +347,7 @@ index 30abbdf3..c09c52f0 100644
   "repo_metadata",
   "serde",
   "thiserror 2.0.17",
-@@ -10820,7 +10925,7 @@ dependencies = [
+@@ -10937,7 +11042,7 @@ dependencies = [
   "tokio",
   "tokio-rustls",
   "tokio-util",
@@ -356,7 +356,7 @@ index 30abbdf3..c09c52f0 100644
   "tower-http",
   "tower-service",
   "url",
-@@ -11905,11 +12010,11 @@ dependencies = [
+@@ -12022,11 +12127,11 @@ dependencies = [
  name = "serve-wasm"
  version = "0.1.0"
  dependencies = [
@@ -370,7 +370,7 @@ index 30abbdf3..c09c52f0 100644
   "tower-http",
   "tracing",
   "tracing-subscriber",
-@@ -13157,7 +13262,7 @@ source = "git+https://github.com/warpdotdev/tink-rust?branch=warpdotdev%2Fmain#0
+@@ -13277,7 +13382,7 @@ source = "git+https://github.com/warpdotdev/tink-rust?branch=warpdotdev%2Fmain#0
  dependencies = [
   "base64 0.22.1",
   "prost 0.14.3",
@@ -379,7 +379,7 @@ index 30abbdf3..c09c52f0 100644
   "serde",
  ]
  
-@@ -13502,6 +13607,70 @@ version = "1.1.0+spec-1.1.0"
+@@ -13622,6 +13727,70 @@ version = "1.1.0+spec-1.1.0"
  source = "registry+https://github.com/rust-lang/crates.io-index"
  checksum = "d282ade6016312faf3e41e57ebbba0c073e4056dab1232ab1cb624199648f8ed"
  
@@ -450,7 +450,7 @@ index 30abbdf3..c09c52f0 100644
  [[package]]
  name = "tower"
  version = "0.5.2"
-@@ -13541,7 +13710,7 @@ dependencies = [
+@@ -13661,7 +13830,7 @@ dependencies = [
   "pin-project-lite",
   "tokio",
   "tokio-util",
@@ -459,7 +459,7 @@ index 30abbdf3..c09c52f0 100644
   "tower-layer",
   "tower-service",
   "tracing",
-@@ -13656,7 +13825,7 @@ checksum = "b8765b90061cba6c22b5831f675da109ae5561588290f9fa2317adab2714d5a6"
+@@ -13776,7 +13945,7 @@ checksum = "b8765b90061cba6c22b5831f675da109ae5561588290f9fa2317adab2714d5a6"
  dependencies = [
   "memchr",
   "nom 8.0.0",
@@ -468,7 +468,7 @@ index 30abbdf3..c09c52f0 100644
  ]
  
  [[package]]
-@@ -14306,7 +14475,7 @@ dependencies = [
+@@ -14427,7 +14596,7 @@ dependencies = [
   "aws-credential-types",
   "aws-sdk-sts",
   "aws-types",
@@ -477,7 +477,7 @@ index 30abbdf3..c09c52f0 100644
   "base64 0.22.1",
   "bimap",
   "bincode",
-@@ -14441,8 +14610,8 @@ dependencies = [
+@@ -14569,8 +14738,8 @@ dependencies = [
   "plist",
   "pprof",
   "prost 0.14.3",
@@ -488,7 +488,7 @@ index 30abbdf3..c09c52f0 100644
   "qrcode",
   "rand 0.8.6",
   "rangemap",
-@@ -14524,6 +14693,7 @@ dependencies = [
+@@ -14651,6 +14820,7 @@ dependencies = [
   "walkdir",
   "warp-command-signatures",
   "warp-workflows",
@@ -496,7 +496,7 @@ index 30abbdf3..c09c52f0 100644
   "warp_assets",
   "warp_cli",
   "warp_completer",
-@@ -14610,6 +14780,15 @@ dependencies = [
+@@ -14740,6 +14910,15 @@ dependencies = [
   "serde",
  ]
  
@@ -512,7 +512,7 @@ index 30abbdf3..c09c52f0 100644
  [[package]]
  name = "warp_assets"
  version = "0.0.0"
-@@ -14931,7 +15110,7 @@ dependencies = [
+@@ -15062,7 +15241,7 @@ dependencies = [
   "prost 0.14.3",
   "prost-reflect",
   "prost-reflect-build",
@@ -522,10 +522,10 @@ index 30abbdf3..c09c52f0 100644
  ]
  
 diff --git a/Cargo.toml b/Cargo.toml
-index ce18e810..f4a0c0af 100644
+index f9400884..6cafc465 100644
 --- a/Cargo.toml
 +++ b/Cargo.toml
-@@ -212,6 +212,10 @@ prost-build = "0.14.3"
+@@ -224,6 +224,10 @@ prost-build = "0.14.3"
  prost-reflect = "0.16.3"
  prost-types = "0.14.3"
  qrcode = { version = "0.14.1", default-features = false }
@@ -537,10 +537,10 @@ index ce18e810..f4a0c0af 100644
  rangemap = "1.3.0"
  reqwest = { version = "0.13", features = [
 diff --git a/app/Cargo.toml b/app/Cargo.toml
-index f7ecc5d0..e2f163cb 100644
+index 89f2d255..9866dd68 100644
 --- a/app/Cargo.toml
 +++ b/app/Cargo.toml
-@@ -164,6 +164,7 @@ pprof = { workspace = true, optional = true, features = ["protobuf-codec"] }
+@@ -167,6 +167,7 @@ pprof = { workspace = true, optional = true, features = ["protobuf-codec"] }
  prost.workspace = true
  prost-types.workspace = true
  qrcode.workspace = true
@@ -549,10 +549,10 @@ index f7ecc5d0..e2f163cb 100644
  rangemap.workspace = true
  rayon.workspace = true
 diff --git a/app/src/server/server_api.rs b/app/src/server/server_api.rs
-index d52b7dc0..3c52ad20 100644
+index 0f0dda80..653bc590 100644
 --- a/app/src/server/server_api.rs
 +++ b/app/src/server/server_api.rs
-@@ -1523,7 +1523,9 @@ impl ServerApiProvider {
+@@ -1614,7 +1614,9 @@ impl ServerApiProvider {
      }
  
      pub fn get_ai_client(&self) -> Arc<dyn AIClient> {
@@ -564,10 +564,10 @@ index d52b7dc0..3c52ad20 100644
  
      pub fn get_cloud_objects_client(&self) -> Arc<dyn ObjectClient> {
 diff --git a/app/src/server/server_api/ai.rs b/app/src/server/server_api/ai.rs
-index b69971a2..4e8d9c01 100644
+index e716efe4..baf7f8a7 100644
 --- a/app/src/server/server_api/ai.rs
 +++ b/app/src/server/server_api/ai.rs
-@@ -863,6 +863,9 @@ pub struct ListConnectedSelfHostedWorkersResponse {
+@@ -992,6 +992,9 @@ pub struct ListConnectedSelfHostedWorkersResponse {
  
  pub(crate) const CONNECTED_SELF_HOSTED_WORKERS_PATH: &str = "agent/connected-self-hosted-workers";
  

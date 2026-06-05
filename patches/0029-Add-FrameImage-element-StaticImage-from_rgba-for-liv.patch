@@ -1,7 +1,7 @@
-From 6e5504a97f5d67a289f4de7f6cb494d2a177644e Mon Sep 17 00:00:00 2001
+From 50ecb1b7f78466b9aa2c13dcf2d42b9b7b78cc1a Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Fri, 22 May 2026 18:48:45 -0400
-Subject: [PATCH 29/45] Add FrameImage element + StaticImage::from_rgba for
+Subject: [PATCH 29/46] Add FrameImage element + StaticImage::from_rgba for
  live frame streams (oh-my-warp)
 
 ---
@@ -162,7 +162,7 @@ index 9520cdd7..60bcfbf1 100644
  pub use icon::*;
  pub use image::*;
 diff --git a/crates/warpui_core/src/image_cache.rs b/crates/warpui_core/src/image_cache.rs
-index f8ceee0f..bce8a69d 100644
+index d729e57d..fd8c5d3d 100644
 --- a/crates/warpui_core/src/image_cache.rs
 +++ b/crates/warpui_core/src/image_cache.rs
 @@ -411,6 +411,19 @@ impl StaticImage {

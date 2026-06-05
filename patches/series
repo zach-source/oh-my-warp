@@ -45,3 +45,4 @@
 0043-Polish-warp.ui.showMarkdown-modal-oh-my-warp.patch
 0044-warp.prompt-themed-kind-icon-for-plugin-prompt-segme.patch
 0045-Add-warp.ui.setStatusItem-id-item-plugin-status-pill.patch
+0046-Adapt-overlay-patches-to-upstream-sync-AIClient-trai.patch

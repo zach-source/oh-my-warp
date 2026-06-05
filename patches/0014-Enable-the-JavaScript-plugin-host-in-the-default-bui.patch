@@ -1,7 +1,7 @@
-From 3b46a38cdeeabcbaab026bf1f99754d8ead7ee88 Mon Sep 17 00:00:00 2001
+From 6fc3d4aef91181fa3f5d6567fa9280b69ba6a28a Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Thu, 21 May 2026 10:19:01 -0400
-Subject: [PATCH 14/45] Enable the JavaScript plugin host in the default build
+Subject: [PATCH 14/46] Enable the JavaScript plugin host in the default build
  (oh-my-warp)
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
@@ -21,10 +21,10 @@ Phase 1. See PLUGIN_SPEC.md.
  4 files changed, 11 insertions(+)
 
 diff --git a/app/Cargo.toml b/app/Cargo.toml
-index e2f163cb..d904434f 100644
+index 9866dd68..f11fce77 100644
 --- a/app/Cargo.toml
 +++ b/app/Cargo.toml
-@@ -468,6 +468,8 @@ creating_shared_sessions = []
+@@ -487,6 +487,8 @@ creating_shared_sessions = []
  cross_repo_context = []
  codebase_index_persistence = ["full_source_code_embedding"]
  default = [
@@ -33,7 +33,7 @@ index e2f163cb..d904434f 100644
      "agent_mode",
      "viewing_shared_sessions",
      "render_continuous_block_selections_with_single_border",
-@@ -764,6 +766,10 @@ read_image_files = []
+@@ -787,6 +789,10 @@ read_image_files = []
  # directly, rather than via the `FeatureFlag` enum, because its value is
  # required early in the app lifecycle prior to `FeatureFlag` initialization.
  plugin_host = ["dep:rquickjs", "dep:warp_js", "warp_cli/plugin_host"]

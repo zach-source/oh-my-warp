@@ -1,7 +1,7 @@
-From 632653d7a8dfd51c97fab79f61da6481f5f0f5b6 Mon Sep 17 00:00:00 2001
+From ac1febd325bcaa018a3b50a3d2f2156039a926f2 Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Thu, 21 May 2026 13:31:39 -0400
-Subject: [PATCH 20/45] Add warp.ui.toast + warp.keymap.bind (oh-my-warp)
+Subject: [PATCH 20/46] Add warp.ui.toast + warp.keymap.bind (oh-my-warp)
 
 Two host->app plugin APIs that need an AppContext: warp.ui.toast(message, kind?)
 and warp.keymap.bind(commandId, keys). The IPC handler enqueues a PluginAppRequest
@@ -488,10 +488,10 @@ index 9ee43c5c..efc7bfcb 100644
  pub use commands::*;
  pub use events::*;
 diff --git a/app/src/workspace/action.rs b/app/src/workspace/action.rs
-index 05138589..ddc972f1 100644
+index e0a6adea..95df42d1 100644
 --- a/app/src/workspace/action.rs
 +++ b/app/src/workspace/action.rs
-@@ -101,6 +101,10 @@ pub enum AutoCloudHandoffTrigger {
+@@ -123,6 +123,10 @@ pub enum AutoCloudHandoffTrigger {
  
  #[derive(Debug, Clone)]
  pub enum WorkspaceAction {
@@ -502,7 +502,7 @@ index 05138589..ddc972f1 100644
      ActivateTab(usize),
      ActivatePrevTab,
      ActivateNextTab,
-@@ -745,6 +749,8 @@ impl WorkspaceAction {
+@@ -796,6 +800,8 @@ impl WorkspaceAction {
      pub fn should_save_app_state_on_action(&self) -> bool {
          use WorkspaceAction::*;
          match self {
@@ -512,10 +512,10 @@ index 05138589..ddc972f1 100644
              ContinueConversationLocally { .. } => true,
              ActivateTab(_)
 diff --git a/app/src/workspace/view.rs b/app/src/workspace/view.rs
-index bf786260..dfa49128 100644
+index 16589f56..a1a31fab 100644
 --- a/app/src/workspace/view.rs
 +++ b/app/src/workspace/view.rs
-@@ -21052,6 +21052,12 @@ impl TypedActionView for Workspace {
+@@ -22234,6 +22234,12 @@ impl TypedActionView for Workspace {
          }
  
          match action {

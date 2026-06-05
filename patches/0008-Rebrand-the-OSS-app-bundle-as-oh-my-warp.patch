@@ -1,7 +1,7 @@
-From e5f2ac078733266623a842ca5d925d0eff147a5c Mon Sep 17 00:00:00 2001
+From 616c36901b283c87582091a93ed4971602ff0428 Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Wed, 20 May 2026 22:12:45 -0400
-Subject: [PATCH 08/45] Rebrand the OSS app bundle as oh-my-warp
+Subject: [PATCH 08/46] Rebrand the OSS app bundle as oh-my-warp
 
 Build output is now oh-my-warp.app (display name oh-my-warp) instead of
 WarpOss.app. Only the bundle product/display name changes: the binary
@@ -16,10 +16,10 @@ so the rebrand stays purely cosmetic and doesn't ripple into warp_core.
  4 files changed, 7 insertions(+), 7 deletions(-)
 
 diff --git a/app/Cargo.toml b/app/Cargo.toml
-index e5a85db8..f7ecc5d0 100644
+index 8f9f5f81..89f2d255 100644
 --- a/app/Cargo.toml
 +++ b/app/Cargo.toml
-@@ -972,7 +972,7 @@ git_credential_refresh = []
+@@ -999,7 +999,7 @@ git_credential_refresh = []
  category = "public.app-category.developer-tools"
  copyright = "© 2025, Denver Technologies, Inc"
  identifier = "dev.warp.WarpOss"
@@ -51,7 +51,7 @@ index 0d07bae5..d17c67d2 100644
      <string>APPL</string>
      <key>CFBundleShortVersionString</key>
 diff --git a/script/macos/bundle b/script/macos/bundle
-index 4e87c7da..b171bc53 100755
+index 1fc56f82..e6b96985 100755
 --- a/script/macos/bundle
 +++ b/script/macos/bundle
 @@ -309,7 +309,7 @@ elif [[ $RELEASE_CHANNEL = "stable" ]]; then
@@ -64,7 +64,7 @@ index 4e87c7da..b171bc53 100755
      # The OSS channel does not ship Sentry, so drop the cocoa_sentry feature
      # (which would otherwise pull in the Sentry framework dependency).
 diff --git a/script/macos/run b/script/macos/run
-index a667e096..e7dadd0e 100755
+index 5c826eeb..6a768259 100755
 --- a/script/macos/run
 +++ b/script/macos/run
 @@ -25,7 +25,7 @@ if [ "$WARP_CHANNEL" = "local" ]; then

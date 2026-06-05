@@ -1,7 +1,7 @@
-From 148bdbe6585813d1f715597c996088bf5dfba012 Mon Sep 17 00:00:00 2001
+From aa96dd084957ef6c3fef1349a38e285540698241 Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Wed, 20 May 2026 11:51:24 -0400
-Subject: [PATCH 02/45] Make leader keymap configurable via named editable
+Subject: [PATCH 02/46] Make leader keymap configurable via named editable
  bindings
 
 Convert the leader chords from FixedBindings to named EditableBindings
@@ -40,7 +40,7 @@ index 69e5a13a..ace905cb 100644
              Self::WarpAi if !FeatureFlag::AgentMode.is_enabled() => {
                  ColorU::from_u32(colors::WARP_AI)
 diff --git a/app/src/util/bindings.rs b/app/src/util/bindings.rs
-index 349f075f..9e565312 100644
+index edcd1b59..e0770d9d 100644
 --- a/app/src/util/bindings.rs
 +++ b/app/src/util/bindings.rs
 @@ -811,6 +811,8 @@ pub enum BindingGroup {

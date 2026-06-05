@@ -1,7 +1,7 @@
-From 4d1c2b4b473a236fa85de333a8cbd5e62edba978 Mon Sep 17 00:00:00 2001
+From 9bafcbed986b09a46c33358a0b66b4671afe029c Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Tue, 2 Jun 2026 22:52:11 -0400
-Subject: [PATCH 44/45] warp.prompt: themed kind + icon for plugin prompt
+Subject: [PATCH 44/46] warp.prompt: themed kind + icon for plugin prompt
  segments (oh-my-warp)
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8

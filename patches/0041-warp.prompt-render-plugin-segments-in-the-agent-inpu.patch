@@ -1,7 +1,7 @@
-From 68276a484e190cb2d497636f014055acf506b3db Mon Sep 17 00:00:00 2001
+From 33613df07a204c41a6a3d1b289268f8242e50acc Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Tue, 2 Jun 2026 22:25:34 -0400
-Subject: [PATCH 41/45] warp.prompt: render plugin segments in the agent input
+Subject: [PATCH 41/46] warp.prompt: render plugin segments in the agent input
  footer too (oh-my-warp)
 
 Pull the chip-rendering for plugin prompt segments out of PromptDisplay into a
@@ -20,10 +20,10 @@ right groups), matching where the native context chips live. No JS API change.
  3 files changed, 64 insertions(+), 30 deletions(-)
 
 diff --git a/app/src/ai/blocklist/agent_view/agent_input_footer/mod.rs b/app/src/ai/blocklist/agent_view/agent_input_footer/mod.rs
-index 02f2a239..67060a65 100644
+index 43e811da..77403e23 100644
 --- a/app/src/ai/blocklist/agent_view/agent_input_footer/mod.rs
 +++ b/app/src/ai/blocklist/agent_view/agent_input_footer/mod.rs
-@@ -61,6 +61,7 @@ use crate::appearance::Appearance;
+@@ -62,6 +62,7 @@ use crate::appearance::Appearance;
  use crate::auth::{AuthManager, AuthStateProvider};
  use crate::completer::SessionContext;
  use crate::context_chips::display_chip::{DisplayChip, DisplayChipConfig};
@@ -31,7 +31,7 @@ index 02f2a239..67060a65 100644
  use crate::context_chips::prompt_type::PromptType;
  use crate::context_chips::{self, ContextChipKind};
  use crate::features::FeatureFlag;
-@@ -1546,6 +1547,10 @@ impl AgentInputFooter {
+@@ -1584,6 +1585,10 @@ impl AgentInputFooter {
                  left_buttons.add_child(element);
              }
          }
@@ -42,7 +42,7 @@ index 02f2a239..67060a65 100644
  
          let mut right_buttons = Flex::row()
              .with_cross_axis_alignment(CrossAxisAlignment::Center)
-@@ -1557,6 +1562,10 @@ impl AgentInputFooter {
+@@ -1600,6 +1605,10 @@ impl AgentInputFooter {
                  right_buttons.add_child(element);
              }
          }
@@ -53,7 +53,7 @@ index 02f2a239..67060a65 100644
  
          let content = Wrap::row()
              .with_main_axis_size(MainAxisSize::Max)
-@@ -2116,6 +2125,8 @@ impl View for AgentInputFooter {
+@@ -2174,6 +2183,8 @@ impl View for AgentInputFooter {
          }
  
          let session_settings = SessionSettings::as_ref(app);
@@ -62,7 +62,7 @@ index 02f2a239..67060a65 100644
          let left_items = session_settings.agent_footer_chip_selection.left_items();
          let right_items = session_settings.agent_footer_chip_selection.right_items();
  
-@@ -2157,6 +2168,10 @@ impl View for AgentInputFooter {
+@@ -2221,6 +2232,10 @@ impl View for AgentInputFooter {
                  left_buttons.add_child(element);
              }
          }
@@ -73,7 +73,7 @@ index 02f2a239..67060a65 100644
  
          let mut right_buttons = Flex::row()
              .with_cross_axis_alignment(CrossAxisAlignment::Center)
-@@ -2181,6 +2196,11 @@ impl View for AgentInputFooter {
+@@ -2249,6 +2264,11 @@ impl View for AgentInputFooter {
                  }
              }
          }

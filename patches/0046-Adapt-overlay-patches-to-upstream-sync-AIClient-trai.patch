@@ -1,0 +1,147 @@
+From 754701e10ddeab9314aad9dcd50de9b31fd8f260 Mon Sep 17 00:00:00 2001
+From: Zach Taylor <zctaylor.work@gmail.com>
+Date: Fri, 5 Jun 2026 00:30:21 -0400
+Subject: [PATCH 46/46] Adapt overlay patches to upstream sync (AIClient trait,
+ Dropdown PartialEq)
+
+Upstream 03ad9ea9 (216 commits) changed APIs our patches use: the AIClient trait gained 11 methods and list_agents dropped its repo param, so GrpcBridgeAIClient delegates the new ones to inner; Dropdown<T> now requires T: PartialEq, so BackendAction and GrpcHarnessAction derive it; SpawnAgentRequest.prompt is now Option<String>; AmbientAgentTask gained a run_time field. cargo check -p warp --lib passes.
+---
+ app/src/server/server_api/ai/bridge.rs        | 81 ++++++++++++++++++-
+ .../settings_view/features/agent_backend.rs   |  2 +-
+ .../settings_view/features/grpc_harness.rs    |  2 +-
+ 3 files changed, 79 insertions(+), 6 deletions(-)
+
+diff --git a/app/src/server/server_api/ai/bridge.rs b/app/src/server/server_api/ai/bridge.rs
+index c1063b2a..5db8f379 100644
+--- a/app/src/server/server_api/ai/bridge.rs
++++ b/app/src/server/server_api/ai/bridge.rs
+@@ -210,7 +210,7 @@ impl AIClient for GrpcBridgeAIClient {
+             UserQueryMode::Orchestrate => pb::AgentMode::Orchestrate,
+         } as i32;
+         let pb_req = pb::SpawnAgentRequest {
+-            prompt: request.prompt,
++            prompt: request.prompt.unwrap_or_default(),
+             mode,
+             title: request.title.unwrap_or_default(),
+             conversation_id: request.conversation_id.unwrap_or_default(),
+@@ -297,6 +297,8 @@ impl AIClient for GrpcBridgeAIClient {
+             artifacts: vec![],
+             last_event_sequence: None,
+             children: vec![],
++            // oh-my-warp: synthesized in-progress task; no run-time duration yet.
++            run_time: None,
+         })
+     }
+ 
+@@ -367,11 +369,82 @@ impl AIClient for GrpcBridgeAIClient {
+             .await
+     }
+ 
+-    async fn list_agents(
++    async fn list_agents(&self) -> anyhow::Result<Vec<AgentResponse>, anyhow::Error> {
++        self.inner.list_agents().await
++    }
++
++    async fn list_agents_raw(&self) -> anyhow::Result<serde_json::Value, anyhow::Error> {
++        self.inner.list_agents_raw().await
++    }
++
++    async fn get_agent(&self, uid: &str) -> anyhow::Result<AgentResponse, anyhow::Error> {
++        self.inner.get_agent(uid).await
++    }
++
++    async fn get_agent_raw(&self, uid: &str) -> anyhow::Result<serde_json::Value, anyhow::Error> {
++        self.inner.get_agent_raw(uid).await
++    }
++
++    async fn create_agent(
++        &self,
++        request: CreateAgentRequest,
++    ) -> anyhow::Result<AgentResponse, anyhow::Error> {
++        self.inner.create_agent(request).await
++    }
++
++    async fn create_agent_raw(
++        &self,
++        request: CreateAgentRequest,
++    ) -> anyhow::Result<serde_json::Value, anyhow::Error> {
++        self.inner.create_agent_raw(request).await
++    }
++
++    async fn update_agent(
++        &self,
++        uid: &str,
++        request: UpdateAgentRequest,
++    ) -> anyhow::Result<AgentResponse, anyhow::Error> {
++        self.inner.update_agent(uid, request).await
++    }
++
++    async fn update_agent_raw(
++        &self,
++        uid: &str,
++        request: UpdateAgentRequest,
++    ) -> anyhow::Result<serde_json::Value, anyhow::Error> {
++        self.inner.update_agent_raw(uid, request).await
++    }
++
++    async fn delete_agent(&self, uid: &str) -> anyhow::Result<(), anyhow::Error> {
++        self.inner.delete_agent(uid).await
++    }
++
++    async fn list_skills(
+         &self,
+         repo: Option<String>,
+-    ) -> anyhow::Result<Vec<AgentListItem>, anyhow::Error> {
+-        self.inner.list_agents(repo).await
++    ) -> anyhow::Result<Vec<AgentSkillItem>, anyhow::Error> {
++        self.inner.list_skills(repo).await
++    }
++
++    async fn get_conversation_usage_history(
++        &self,
++        days: Option<i32>,
++        limit: Option<i32>,
++        last_updated_end_timestamp: Option<warp_graphql::scalars::Time>,
++    ) -> Result<Vec<ConversationUsage>, anyhow::Error> {
++        self.inner
++            .get_conversation_usage_history(days, limit, last_updated_end_timestamp)
++            .await
++    }
++
++    async fn post_agent_run_client_event(
++        &self,
++        run_id: &AmbientAgentTaskId,
++        request: AgentRunClientEventRequest,
++    ) -> anyhow::Result<(), anyhow::Error> {
++        self.inner
++            .post_agent_run_client_event(run_id, request)
++            .await
+     }
+ 
+     async fn cancel_ambient_agent_task(
+diff --git a/app/src/settings_view/features/agent_backend.rs b/app/src/settings_view/features/agent_backend.rs
+index 05c26b94..cebaf94d 100644
+--- a/app/src/settings_view/features/agent_backend.rs
++++ b/app/src/settings_view/features/agent_backend.rs
+@@ -18,7 +18,7 @@ pub struct BackendSelectorView {
+     dropdown: ViewHandle<Dropdown<BackendAction>>,
+ }
+ 
+-#[derive(Debug, Clone)]
++#[derive(Debug, Clone, PartialEq)]
+ pub enum BackendAction {
+     /// Select the backend with this id ([`DEFAULT_BACKEND_ID`] = built-in Warp).
+     Select(String),
+diff --git a/app/src/settings_view/features/grpc_harness.rs b/app/src/settings_view/features/grpc_harness.rs
+index f2b734bc..9aabd549 100644
+--- a/app/src/settings_view/features/grpc_harness.rs
++++ b/app/src/settings_view/features/grpc_harness.rs
+@@ -19,7 +19,7 @@ pub struct GrpcHarnessSelectorView {
+     dropdown: ViewHandle<Dropdown<GrpcHarnessAction>>,
+ }
+ 
+-#[derive(Debug, Clone)]
++#[derive(Debug, Clone, PartialEq)]
+ pub enum GrpcHarnessAction {
+     /// Select this harness (empty string = nothing selectable / no gRPC backend).
+     Select(String),

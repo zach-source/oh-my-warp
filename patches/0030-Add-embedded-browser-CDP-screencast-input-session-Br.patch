@@ -1,7 +1,7 @@
-From cc93fc5288c661c048a182c192ded0547b17cc11 Mon Sep 17 00:00:00 2001
+From 442e9a122490d0cd7c6de184f957053b5b22e6c0 Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Fri, 22 May 2026 18:48:45 -0400
-Subject: [PATCH 30/45] Add embedded browser: CDP screencast/input session +
+Subject: [PATCH 30/46] Add embedded browser: CDP screencast/input session +
  BrowserView pane (oh-my-warp)
 
 ---
@@ -18,10 +18,10 @@ Subject: [PATCH 30/45] Add embedded browser: CDP screencast/input session +
  create mode 100644 app/src/browser/view.rs
 
 diff --git a/Cargo.lock b/Cargo.lock
-index d93bbc75..e0cb401c 100644
+index d4f6a40b..5acac459 100644
 --- a/Cargo.lock
 +++ b/Cargo.lock
-@@ -14673,6 +14673,7 @@ dependencies = [
+@@ -14800,6 +14800,7 @@ dependencies = [
   "toml 0.8.23",
   "toml_edit 0.25.6+spec-1.1.0",
   "tracing",
@@ -30,10 +30,10 @@ index d93bbc75..e0cb401c 100644
   "ui_components",
   "unicase",
 diff --git a/Cargo.toml b/Cargo.toml
-index f4a0c0af..baab7407 100644
+index 6cafc465..3602f8e1 100644
 --- a/Cargo.toml
 +++ b/Cargo.toml
-@@ -268,6 +268,11 @@ toml_edit = "0.25.5"
+@@ -280,6 +280,11 @@ toml_edit = "0.25.5"
  tower = "0.5.2"
  tower-http = "0.6.6"
  tracing = "0.1.40"
@@ -46,10 +46,10 @@ index f4a0c0af..baab7407 100644
    "lang-rust",
    "lang-go",
 diff --git a/app/Cargo.toml b/app/Cargo.toml
-index 7e544e31..ee67bad6 100644
+index 7248eca3..349d76ef 100644
 --- a/app/Cargo.toml
 +++ b/app/Cargo.toml
-@@ -209,6 +209,7 @@ tikv-jemallocator = { version = "0.6", optional = true, features = [
+@@ -212,6 +212,7 @@ tikv-jemallocator = { version = "0.6", optional = true, features = [
  toml = "0.8.13"
  toml_edit.workspace = true
  tracing.workspace = true
@@ -1264,7 +1264,7 @@ index 00000000..6d0b1638
 +    }
 +}
 diff --git a/app/src/lib.rs b/app/src/lib.rs
-index 6564e9dd..9e3cd875 100644
+index 0170dfa6..9e2e1c12 100644
 --- a/app/src/lib.rs
 +++ b/app/src/lib.rs
 @@ -12,6 +12,7 @@ mod auth;

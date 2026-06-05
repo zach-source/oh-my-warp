@@ -1,7 +1,7 @@
-From 158eb73f62045bc0024530132674e7f635521d7d Mon Sep 17 00:00:00 2001
+From 09f43befae55092fb41b82f7dda3c1fc75399b86 Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Mon, 25 May 2026 01:27:52 -0400
-Subject: [PATCH 36/45] Persist browser panes (URL) across app restart: new
+Subject: [PATCH 36/46] Persist browser panes (URL) across app restart: new
  browser_panes table + LeafContents::Browser { url } (oh-my-warp)
 
 ---
@@ -95,10 +95,10 @@ index f3d3ad6e..1896a87c 100644
                  | LeafContents::AIDocument(_)
                  | LeafContents::EnvironmentManagement(_)
 diff --git a/app/src/pane_group/mod.rs b/app/src/pane_group/mod.rs
-index 76d3894a..202c41a2 100644
+index 26611175..f987fcc2 100644
 --- a/app/src/pane_group/mod.rs
 +++ b/app/src/pane_group/mod.rs
-@@ -1928,12 +1928,16 @@ impl PaneGroup {
+@@ -1949,12 +1949,16 @@ impl PaneGroup {
                      "Network log pane should not have been persisted, as it cannot be restored"
                  ))
              }
@@ -139,19 +139,19 @@ index f5a901b9..948c0224 100644
  
      fn has_application_focus(&self, ctx: &mut ViewContext<PaneGroup>) -> bool {
 diff --git a/app/src/persistence/sqlite.rs b/app/src/persistence/sqlite.rs
-index 7b4dd253..e860c54a 100644
+index 9114e58c..ec8d3977 100644
 --- a/app/src/persistence/sqlite.rs
 +++ b/app/src/persistence/sqlite.rs
-@@ -24,7 +24,7 @@ use lsp::supported_servers::LSPServerType;
+@@ -40,7 +40,7 @@ use lsp::supported_servers::LSPServerType;
  use num_traits::FromPrimitive;
  use pathfinder_geometry::rect::RectF;
  use pathfinder_geometry::vector::Vector2F;
 -use persistence::model::AMBIENT_AGENT_PANE_KIND;
 +use persistence::model::{AMBIENT_AGENT_PANE_KIND, BROWSER_PANE_KIND};
  use uuid::Uuid;
- use warp_graphql::scalars::time::ServerTimestamp;
  use warpui::platform::FullscreenState;
-@@ -1109,9 +1109,8 @@ fn save_pane_state(
+ use warpui::windowing::{MIN_WINDOW_HEIGHT, MIN_WINDOW_WIDTH};
+@@ -1096,9 +1096,8 @@ fn save_pane_state(
          LeafContents::GetStarted => GET_STARTED_PANE_KIND,
          LeafContents::Welcome { .. } => WELCOME_PANE_KIND,
          LeafContents::AIDocument(_) => AI_DOCUMENT_PANE_KIND,
@@ -163,7 +163,7 @@ index 7b4dd253..e860c54a 100644
              // These pane types are filtered out before this function is
              // called; see `LeafContents::is_persisted` and the skip in
              // `save_app_state`. Reaching this arm would mean a `pane_nodes`
-@@ -1353,8 +1352,14 @@ fn save_pane_state(
+@@ -1340,8 +1339,14 @@ fn save_pane_state(
          LeafContents::NetworkLog => {
              // Unreachable: filtered by `is_persisted` in `save_app_state`.
          }
@@ -180,7 +180,7 @@ index 7b4dd253..e860c54a 100644
          }
      }
  
-@@ -2661,6 +2666,13 @@ fn read_node(conn: &mut SqliteConnection, node: model::PaneNode) -> Result<PaneN
+@@ -2327,6 +2332,13 @@ fn read_node(conn: &mut SqliteConnection, node: model::PaneNode) -> Result<PaneN
                          task_id,
                      })
                  }
@@ -195,10 +195,10 @@ index 7b4dd253..e860c54a 100644
              };
  
 diff --git a/app/src/workspace/view.rs b/app/src/workspace/view.rs
-index 12edf0ec..eaf3d632 100644
+index df596edf..cb496bec 100644
 --- a/app/src/workspace/view.rs
 +++ b/app/src/workspace/view.rs
-@@ -2031,10 +2031,10 @@ impl Workspace {
+@@ -2155,10 +2155,10 @@ impl Workspace {
                  me.show_plugin_palette(title.clone(), items.clone(), ctx);
              }
              crate::plugin::PluginHostEvent::OpenWebTab { url } => {
@@ -213,7 +213,7 @@ index 12edf0ec..eaf3d632 100644
              }
          });
      }
-@@ -13407,12 +13407,17 @@ impl Workspace {
+@@ -14364,12 +14364,17 @@ impl Workspace {
          });
      }
  
@@ -234,7 +234,7 @@ index 12edf0ec..eaf3d632 100644
          })));
          self.add_tab_with_pane_layout(
              panes_layout,
-@@ -21541,7 +21546,7 @@ impl TypedActionView for Workspace {
+@@ -22740,7 +22745,7 @@ impl TypedActionView for Workspace {
                  self.open_browser_pane(ctx);
              }
              NewWebTab => {
@@ -265,7 +265,7 @@ index 00000000..72582920
 +    url TEXT NOT NULL
 +);
 diff --git a/crates/persistence/src/model.rs b/crates/persistence/src/model.rs
-index 6a73aa8e..b24cae7f 100644
+index ae5c0e01..e04f1d89 100644
 --- a/crates/persistence/src/model.rs
 +++ b/crates/persistence/src/model.rs
 @@ -10,9 +10,9 @@ use warp_multi_agent_api::{self as api};
