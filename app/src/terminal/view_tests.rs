@@ -16,7 +16,7 @@ use warpui::platform::WindowStyle;
 use warpui::{App, Presenter, ReadModel, WindowInvalidation};
 
 use super::*;
-use crate::ai::agent::conversation::ConversationStatus;
+use crate::ai::agent::conversation::{AIConversation, ConversationStatus};
 use crate::ai::agent::task::TaskId;
 use crate::ai::agent::{
     AIAgentExchange, AIAgentExchangeId, AIAgentInput, AIAgentOutputStatus, UserQueryMode,
@@ -101,6 +101,46 @@ fn has_pending_user_query_block(view: &TerminalView) -> bool {
         rich_content.view_id() == view_id && rich_content.is_pending_user_query()
     })
 }
+
+#[test]
+fn focus_reporting_writes_focus_events_in_normal_screen() {
+    App::test((), |mut app| async move {
+        initialize_app_for_terminal_view(&mut app);
+        let terminal = add_window_with_terminal(&mut app, None);
+        let pty_writes: Rc<RefCell<Vec<Vec<u8>>>> = Rc::new(RefCell::new(Vec::new()));
+        let writes = pty_writes.clone();
+
+        app.update(|ctx| {
+            ctx.subscribe_to_view(&terminal, move |_, event, _| {
+                if let Event::WriteBytesToPty { bytes } = event {
+                    writes.borrow_mut().push(bytes.to_vec());
+                }
+            });
+        });
+
+        terminal.update(&mut app, |view, ctx| {
+            let mut model = view.model.lock();
+            model.simulate_long_running_block("python3 /tmp/warp_focus_test.py", "");
+            assert!(!model.is_alt_screen_active());
+            ansi::Handler::set_mode(&mut *model, ansi::Mode::ReportFocusInOut);
+            assert!(model.is_term_mode_set(TermMode::FOCUS_IN_OUT));
+            drop(model);
+            assert!(view.should_report_focus(ctx));
+
+            view.maybe_report_focus_out(ctx);
+            view.maybe_report_focus_in(ctx);
+        });
+
+        assert_eq!(
+            *pty_writes.borrow(),
+            vec![
+                escape_sequences::EscCodes::FOCUS_OUT.to_vec(),
+                escape_sequences::EscCodes::FOCUS_IN.to_vec(),
+            ]
+        );
+    })
+}
+
 fn input_operations_for_buffer_content(app: &mut App, content: &str) -> Vec<CrdtOperation> {
     let terminal = add_window_with_terminal(app, None);
     terminal.update(app, |view, ctx| {
@@ -276,6 +316,63 @@ fn command_block_count_for_conversation(
             )
         })
         .count()
+}
+
+#[test]
+fn updated_conversation_metadata_refreshes_selected_conversation_pane_title() {
+    App::test((), |mut app| async move {
+        initialize_app_for_terminal_view(&mut app);
+        let _agent_view = FeatureFlag::AgentView.override_enabled(false);
+        let terminal = add_window_with_terminal(&mut app, None);
+        let conversation_id = AIConversationId::new();
+
+        terminal.update(&mut app, |view, ctx| {
+            let conversation = AIConversation::new_restored(
+                conversation_id,
+                vec![warp_multi_agent_api::Task {
+                    id: "root-task".to_string(),
+                    messages: vec![],
+                    dependencies: None,
+                    description: "Original title".to_string(),
+                    summary: String::new(),
+                    server_data: String::new(),
+                }],
+                None,
+            )
+            .expect("conversation should restore");
+
+            BlocklistAIHistoryModel::handle(ctx).update(ctx, |history, ctx| {
+                history.restore_conversations(view.view_id, vec![conversation], ctx);
+            });
+            view.ai_context_model.update(ctx, |context_model, ctx| {
+                context_model.set_pending_query_state_for_existing_conversation(
+                    conversation_id,
+                    AgentViewEntryOrigin::AgentViewBlock,
+                    ctx,
+                );
+            });
+            view.update_pane_configuration(ctx);
+            assert_eq!(
+                view.pane_configuration.as_ref(ctx).title(),
+                "Original title"
+            );
+
+            BlocklistAIHistoryModel::handle(ctx).update(ctx, |history, ctx| {
+                history.apply_conversation_title(conversation_id, "Renamed title".to_string(), ctx)
+            });
+            view.handle_ai_history_model_event(
+                BlocklistAIHistoryModel::handle(ctx),
+                &BlocklistAIHistoryEvent::UpdatedConversationTitle {
+                    terminal_view_id: Some(view.view_id),
+                    conversation_id,
+                    title: "Renamed title".to_string(),
+                },
+                ctx,
+            );
+
+            assert_eq!(view.pane_configuration.as_ref(ctx).title(), "Renamed title");
+        });
+    })
 }
 struct TestTerminalManager {
     model: Arc<FairMutex<TerminalModel>>,

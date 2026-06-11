@@ -285,11 +285,7 @@ fn test_get_repo_contents() {
 
             // Test getting all files
             model_handle.read(&app, |model, _ctx| {
-                let args = GetContentsArgs {
-                    include_folders: false,
-                    include_ignored: false,
-                    filter: None,
-                };
+                let args = GetContentsArgs::default().exclude_folders();
                 let result = model
                     .get_repo_contents(
                         &StandardizedPath::from_local_canonicalized(&test_repo).unwrap(),
@@ -303,11 +299,7 @@ fn test_get_repo_contents() {
 
                 // Test with non-existent repository
                 let non_existent = StandardizedPath::try_new("/non_existent_repo").unwrap();
-                let args = GetContentsArgs {
-                    include_folders: false,
-                    include_ignored: false,
-                    filter: None,
-                };
+                let args = GetContentsArgs::default().exclude_folders();
                 let non_existent_result = model.get_repo_contents(&non_existent, args);
                 assert!(matches!(
                     non_existent_result,
@@ -343,14 +335,7 @@ fn test_get_repo_contents_truncates_to_max_results() {
         .insert(repo_path.clone(), IndexedRepoState::Indexed(state));
 
     let result = model
-        .get_repo_contents(
-            &repo_path,
-            GetContentsArgs {
-                include_folders: false,
-                include_ignored: false,
-                filter: None,
-            },
-        )
+        .get_repo_contents(&repo_path, GetContentsArgs::default().exclude_folders())
         .unwrap();
 
     // The result is capped and flagged as truncated rather than erroring.
@@ -359,6 +344,59 @@ fn test_get_repo_contents_truncates_to_max_results() {
         crate::local_model::MAX_REPO_CONTENTS_RESULTS
     );
     assert!(result.truncated);
+}
+
+/// A query-style traversal filter must be evaluated *before* an entry counts
+/// toward the result cap, so a matching file that sorts well past the cap in
+/// traversal order is still returned. This is the core guarantee that keeps
+/// file search from truncating matches away.
+#[test]
+fn test_get_repo_contents_filter_applies_before_cap() {
+    let base = std::env::temp_dir().join("filter_before_cap_repo");
+    let repo_path = StandardizedPath::try_from_local(&base).unwrap();
+
+    // Many non-matching files, then a single matching "needle" file placed last
+    // so it is well beyond the default result cap in traversal order.
+    let noise_count = crate::local_model::MAX_REPO_CONTENTS_RESULTS + 50;
+    let mut children: Vec<Entry> = (0..noise_count)
+        .map(|i| Entry::File(FileMetadata::new(base.join(format!("file{i}.txt")), false)))
+        .collect();
+    children.push(Entry::File(FileMetadata::new(
+        base.join("needle.rs"),
+        false,
+    )));
+    let root = Entry::Directory(DirectoryEntry {
+        path: repo_path.clone(),
+        children,
+        ignored: false,
+        loaded: true,
+    });
+    let state = FileTreeState::new(root, Vec::new(), None);
+
+    let mut model = LocalRepoMetadataModel::new_for_test();
+    model
+        .repositories
+        .insert(repo_path.clone(), IndexedRepoState::Indexed(state));
+
+    let args = GetContentsArgs::default().with_filter(|content| match content {
+        crate::RepoContent::File(file) => file
+            .path
+            .to_local_path_lossy()
+            .to_string_lossy()
+            .contains("needle"),
+        crate::RepoContent::Directory(_) => false,
+    });
+    let result = model.get_repo_contents(&repo_path, args).unwrap();
+
+    // The single matching file is returned despite sorting past the cap, and
+    // the result is not truncated because only one entry matched.
+    assert_eq!(result.contents.len(), 1);
+    assert!(!result.truncated);
+    assert!(matches!(
+        &result.contents[0],
+        crate::RepoContent::File(file)
+            if file.path.to_local_path_lossy() == base.join("needle.rs")
+    ));
 }
 
 #[cfg(feature = "local_fs")]
@@ -551,32 +589,23 @@ fn test_lazy_loaded_path_discovers_force_included_skills_and_emits_watcher_delta
         });
     });
 }
+
 #[cfg(feature = "local_fs")]
 #[test]
-fn test_index_directory_upgrades_lazy_loaded_path_to_repo() {
-    VirtualFS::test("lazy_loaded_path_upgrade", |dirs, mut vfs| {
-        vfs.mkdir("repo/.git/objects")
-            .mkdir("repo/src/nested")
-            .with_files(vec![
-                Stub::FileWithContent("repo/.git/HEAD", "ref: refs/heads/main"),
-                Stub::FileWithContent("repo/.git/config", "[core]\n\trepositoryformatversion = 0"),
-                Stub::FileWithContent("repo/src/nested/main.rs", "fn main() {}\n"),
-            ]);
+fn test_index_directory_path_upgrades_lazy_loaded_non_git_path() {
+    VirtualFS::test("lazy_loaded_non_git_path_upgrade", |dirs, mut vfs| {
+        vfs.mkdir("repo/src/nested")
+            .with_files(vec![Stub::FileWithContent(
+                "repo/src/nested/main.rs",
+                "fn main() {}\n",
+            )]);
 
         let repo_root = dirs.tests().join("repo");
         let src_dir = repo_root.join("src");
         let source_file = repo_root.join("src/nested/main.rs");
 
         App::test((), |mut app| async move {
-            let directory_watcher = app.add_singleton_model(DirectoryWatcher::new);
-            let repository_handle = directory_watcher.update(&mut app, |watcher, ctx| {
-                watcher
-                    .add_directory(
-                        StandardizedPath::from_local_canonicalized(&repo_root).unwrap(),
-                        ctx,
-                    )
-                    .unwrap()
-            });
+            app.add_singleton_model(DirectoryWatcher::new_for_testing);
             let model_handle = app.add_model(|_| LocalRepoMetadataModel::new_for_test());
 
             let repo_root_for_index =
@@ -588,12 +617,10 @@ fn test_index_directory_upgrades_lazy_loaded_path_to_repo() {
             });
 
             model_handle.read(&app, |model, _ctx| {
-                assert!(model.is_lazy_loaded_path(
-                    &StandardizedPath::from_local_canonicalized(&repo_root).unwrap()
-                ));
-                let Some(IndexedRepoState::Indexed(state)) = model.repository_state(
-                    &StandardizedPath::from_local_canonicalized(&repo_root).unwrap(),
-                ) else {
+                assert!(model.is_lazy_loaded_path(&repo_root_for_index));
+                let Some(IndexedRepoState::Indexed(state)) =
+                    model.repository_state(&repo_root_for_index)
+                else {
                     panic!("expected indexed lazy-loaded path");
                 };
                 assert!(state
@@ -604,7 +631,7 @@ fn test_index_directory_upgrades_lazy_loaded_path_to_repo() {
                     .contains(&StandardizedPath::try_from_local(&source_file).unwrap()));
             });
             let (tx, rx) = oneshot::channel();
-            let repo_root_for_event = repo_root.clone();
+            let repo_root_for_event = repo_root_for_index.clone();
             let upgrade_completed = Rc::new(RefCell::new(Some(tx)));
             let upgrade_completed_for_event = upgrade_completed.clone();
             app.update(|ctx| {
@@ -612,7 +639,7 @@ fn test_index_directory_upgrades_lazy_loaded_path_to_repo() {
                     if matches!(
                         event,
                         RepositoryMetadataEvent::RepositoryUpdated { path }
-                            if path.to_local_path().as_ref() == Some(&repo_root_for_event)
+                            if path == &repo_root_for_event
                     ) {
                         if let Some(tx) = upgrade_completed_for_event.borrow_mut().take() {
                             let _ = tx.send(());
@@ -622,21 +649,21 @@ fn test_index_directory_upgrades_lazy_loaded_path_to_repo() {
             });
 
             model_handle.update(&mut app, |model, ctx| {
-                model.index_directory(repository_handle, ctx).unwrap();
+                model
+                    .index_directory_path(&repo_root_for_index, ctx)
+                    .unwrap();
             });
             rx.with_timeout(Duration::from_secs(5))
                 .await
-                .expect("timed out waiting for repo upgrade")
-                .expect("repo upgrade completion sender dropped");
+                .expect("timed out waiting for full directory upgrade")
+                .expect("full directory upgrade completion sender dropped");
 
             model_handle.read(&app, |model, _ctx| {
-                assert!(!model.is_lazy_loaded_path(
-                    &StandardizedPath::from_local_canonicalized(&repo_root).unwrap()
-                ));
-                let Some(IndexedRepoState::Indexed(state)) = model.repository_state(
-                    &StandardizedPath::from_local_canonicalized(&repo_root).unwrap(),
-                ) else {
-                    panic!("expected indexed repo after upgrade");
+                assert!(!model.is_lazy_loaded_path(&repo_root_for_index));
+                let Some(IndexedRepoState::Indexed(state)) =
+                    model.repository_state(&repo_root_for_index)
+                else {
+                    panic!("expected fully indexed directory after upgrade");
                 };
                 assert!(state
                     .entry
@@ -743,11 +770,7 @@ fn test_get_repo_contents_include_ignored() {
 
             // Test with include_ignored = false (should exclude ignored files and directories)
             model_handle.read(&app, |model, _ctx| {
-                let args = GetContentsArgs {
-                    include_folders: true,
-                    include_ignored: false,
-                    filter: None,
-                };
+                let args = GetContentsArgs::default();
                 let contents = model
                     .get_repo_contents(
                         &StandardizedPath::from_local_canonicalized(&test_repo).unwrap(),
@@ -777,11 +800,7 @@ fn test_get_repo_contents_include_ignored() {
 
             // Test with include_ignored = true (should include everything)
             model_handle.read(&app, |model, _ctx| {
-                let args = GetContentsArgs {
-                    include_folders: true,
-                    include_ignored: true,
-                    filter: None,
-                };
+                let args = GetContentsArgs::default().include_ignored();
                 let contents = model
                     .get_repo_contents(
                         &StandardizedPath::from_local_canonicalized(&test_repo).unwrap(),
