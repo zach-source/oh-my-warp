@@ -1,4 +1,4 @@
-From 2bbb4ed699a65d2ab0e4bf6adb2a6efe8a999bfc Mon Sep 17 00:00:00 2001
+From 3f8dacfd81099ebbc4e6bde7482dcd3d44557ebd Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Tue, 2 Jun 2026 22:46:22 -0400
 Subject: [PATCH 42/46] Add rich items + fuzzy search to warp.ui.showPalette

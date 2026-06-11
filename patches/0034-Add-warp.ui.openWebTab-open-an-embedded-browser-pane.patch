@@ -1,4 +1,4 @@
-From 353a6fec126a983c8b91769323969ef922565685 Mon Sep 17 00:00:00 2001
+From bde227f36ebd283a26fb0571dc1a44afe1430031 Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Fri, 22 May 2026 22:44:35 -0400
 Subject: [PATCH 34/46] Add warp.ui.openWebTab: open an embedded browser pane
@@ -120,10 +120,10 @@ index b7cbf546..2401a85a 100644
  }
  
 diff --git a/app/src/workspace/view.rs b/app/src/workspace/view.rs
-index cb94c959..df596edf 100644
+index 5e82d8df..b42f7e46 100644
 --- a/app/src/workspace/view.rs
 +++ b/app/src/workspace/view.rs
-@@ -2154,6 +2154,12 @@ impl Workspace {
+@@ -2181,6 +2181,12 @@ impl Workspace {
              crate::plugin::PluginHostEvent::ShowPalette { title, items } => {
                  me.show_plugin_palette(title.clone(), items.clone(), ctx);
              }

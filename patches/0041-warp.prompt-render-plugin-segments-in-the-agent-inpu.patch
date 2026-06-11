@@ -1,4 +1,4 @@
-From 33613df07a204c41a6a3d1b289268f8242e50acc Mon Sep 17 00:00:00 2001
+From a86f35b5281b07243247598a429bd1785154e508 Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Tue, 2 Jun 2026 22:25:34 -0400
 Subject: [PATCH 41/46] warp.prompt: render plugin segments in the agent input
@@ -20,13 +20,13 @@ right groups), matching where the native context chips live. No JS API change.
  3 files changed, 64 insertions(+), 30 deletions(-)
 
 diff --git a/app/src/ai/blocklist/agent_view/agent_input_footer/mod.rs b/app/src/ai/blocklist/agent_view/agent_input_footer/mod.rs
-index 43e811da..77403e23 100644
+index a674c35f..69c9b289 100644
 --- a/app/src/ai/blocklist/agent_view/agent_input_footer/mod.rs
 +++ b/app/src/ai/blocklist/agent_view/agent_input_footer/mod.rs
 @@ -62,6 +62,7 @@ use crate::appearance::Appearance;
  use crate::auth::{AuthManager, AuthStateProvider};
  use crate::completer::SessionContext;
- use crate::context_chips::display_chip::{DisplayChip, DisplayChipConfig};
+ use crate::context_chips::display_chip::{DisplayChip, DisplayChipConfig, PromptChipShellCommand};
 +use crate::context_chips::plugin_prompt::{render_plugin_chips_for_side, PromptSide};
  use crate::context_chips::prompt_type::PromptType;
  use crate::context_chips::{self, ContextChipKind};
@@ -86,7 +86,7 @@ index 43e811da..77403e23 100644
          let content = Wrap::row()
              .with_main_axis_size(MainAxisSize::Max)
 diff --git a/app/src/context_chips/display.rs b/app/src/context_chips/display.rs
-index 733492ba..88da3691 100644
+index 3c1c8fdb..b87f9e1c 100644
 --- a/app/src/context_chips/display.rs
 +++ b/app/src/context_chips/display.rs
 @@ -11,10 +11,8 @@ use warpui::{
@@ -102,7 +102,7 @@ index 733492ba..88da3691 100644
  use super::prompt_type::PromptType;
  use super::{git_line_changes_from_chips, ChipResult, ContextChipKind};
  use crate::ai::blocklist::agent_view::AgentViewController;
-@@ -438,16 +436,14 @@ impl View for PromptDisplay {
+@@ -443,16 +441,14 @@ impl View for PromptDisplay {
          });
  
          // oh-my-warp: append plugin-contributed segments (`warp.prompt.set`) as native chips —

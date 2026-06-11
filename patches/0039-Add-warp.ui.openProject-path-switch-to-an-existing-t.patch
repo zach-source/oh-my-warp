@@ -1,4 +1,4 @@
-From 046c6b6138d6b680fd01e9fc2dba55881a5e1715 Mon Sep 17 00:00:00 2001
+From 1d1588115ef98f3ccd8bb316dbb776e5e59c2a55 Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Mon, 25 May 2026 14:07:04 -0400
 Subject: [PATCH 39/46] Add warp.ui.openProject(path): switch to an existing
@@ -77,10 +77,10 @@ index 2401a85a..da6181b7 100644
  }
  
 diff --git a/app/src/workspace/view.rs b/app/src/workspace/view.rs
-index cb496bec..29f63848 100644
+index 61858b31..3fbb8bf5 100644
 --- a/app/src/workspace/view.rs
 +++ b/app/src/workspace/view.rs
-@@ -2160,6 +2160,12 @@ impl Workspace {
+@@ -2187,6 +2187,12 @@ impl Workspace {
                  // `BrowserView::new` via the one-shot URL override.
                  me.open_web_tab(Some(url.clone()), ctx);
              }
@@ -93,7 +93,7 @@ index cb496bec..29f63848 100644
          });
      }
  
-@@ -12388,6 +12394,36 @@ impl Workspace {
+@@ -12605,6 +12611,36 @@ impl Workspace {
          }
      }
  
@@ -130,7 +130,7 @@ index cb496bec..29f63848 100644
      fn handle_open_repository(&mut self, path: &str, ctx: &mut ViewContext<Self>) {
          let path_buf = PathBuf::from(path);
          ProjectManagementModel::handle(ctx).update(ctx, |projects, ctx| {
-@@ -22410,7 +22446,20 @@ impl TypedActionView for Workspace {
+@@ -23003,7 +23039,20 @@ impl TypedActionView for Workspace {
          match action {
              RunPluginCommand(command_id) => {
                  #[cfg(feature = "plugin_host")]

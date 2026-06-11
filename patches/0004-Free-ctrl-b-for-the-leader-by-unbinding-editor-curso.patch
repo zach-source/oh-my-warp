@@ -1,4 +1,4 @@
-From a59f27a2fc0b7ca948aeaf8ecb444ebe43023250 Mon Sep 17 00:00:00 2001
+From 1289a007090ba62354a9063fb18f6ff06670143a Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Wed, 20 May 2026 12:29:16 -0400
 Subject: [PATCH 04/46] Free ctrl-b for the leader by unbinding editor
@@ -14,7 +14,7 @@ start; the Left arrow still moves the cursor.
  1 file changed, 6 insertions(+), 2 deletions(-)
 
 diff --git a/app/src/editor/view/mod.rs b/app/src/editor/view/mod.rs
-index 81c8cb1d..2e0d42bd 100644
+index 4581c9c3..90934a45 100644
 --- a/app/src/editor/view/mod.rs
 +++ b/app/src/editor/view/mod.rs
 @@ -621,9 +621,13 @@ pub fn init(ctx: &mut AppContext) {

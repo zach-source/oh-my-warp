@@ -1,4 +1,4 @@
-From 2719e47809d5ad940362b62aa801be94d9331fd5 Mon Sep 17 00:00:00 2001
+From 414bfe9f0ab639211e7971520d4deb7ebd3cc705 Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Wed, 27 May 2026 14:06:16 -0400
 Subject: [PATCH 40/46] Add warp.prompt: plugin-contributed native prompt
@@ -34,7 +34,7 @@ True right-edge alignment is a follow-up (the modern UDI prompt has no rprompt r
  create mode 100644 app/src/context_chips/plugin_prompt.rs
 
 diff --git a/app/src/context_chips/display.rs b/app/src/context_chips/display.rs
-index 9dfe3783..733492ba 100644
+index 3c1767d4..3c1c8fdb 100644
 --- a/app/src/context_chips/display.rs
 +++ b/app/src/context_chips/display.rs
 @@ -11,7 +11,10 @@ use warpui::{
@@ -55,7 +55,7 @@ index 9dfe3783..733492ba 100644
  use crate::ai::document::ai_document_model::{AIDocumentId, AIDocumentVersion};
 +use crate::appearance::Appearance;
  use crate::completer::SessionContext;
- use crate::context_chips::display_chip::{format_git_branch_command, DisplayChipAction};
+ use crate::context_chips::display_chip::{DisplayChipAction, PromptChipShellCommand};
  use crate::settings::InputSettings;
 @@ -139,6 +143,11 @@ impl PromptDisplay {
              ctx.notify();
@@ -69,7 +69,7 @@ index 9dfe3783..733492ba 100644
          Self {
              prompt,
              display_chips: vec![],
-@@ -428,6 +437,19 @@ impl View for PromptDisplay {
+@@ -433,6 +442,19 @@ impl View for PromptDisplay {
              }
          });
  
@@ -206,10 +206,10 @@ index 00000000..f4b1a2ee
 +
 +impl SingletonEntity for PluginPromptModel {}
 diff --git a/app/src/lib.rs b/app/src/lib.rs
-index 9e2e1c12..a981991b 100644
+index 84278e14..fe48dae6 100644
 --- a/app/src/lib.rs
 +++ b/app/src/lib.rs
-@@ -1788,6 +1788,9 @@ pub(crate) fn initialize_app(
+@@ -1821,6 +1821,9 @@ pub(crate) fn initialize_app(
      ctx.add_singleton_model(
          ai::blocklist::local_agent_task_sync_model::LocalAgentTaskSyncModel::new,
      );
@@ -366,10 +366,10 @@ index da6181b7..1414a290 100644
  ///
  /// `bind(commandId: string, keys: string)` — binds a key sequence (e.g. `"ctrl-b g"`) to a
 diff --git a/app/src/workspace/view.rs b/app/src/workspace/view.rs
-index 29f63848..0ead4b1b 100644
+index 3fbb8bf5..baa6f0bc 100644
 --- a/app/src/workspace/view.rs
 +++ b/app/src/workspace/view.rs
-@@ -2166,6 +2166,17 @@ impl Workspace {
+@@ -2193,6 +2193,17 @@ impl Workspace {
                  // switch-or-create).
                  me.open_or_focus_project(path, ctx);
              }

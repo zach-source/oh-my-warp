@@ -1,4 +1,4 @@
-From 442e9a122490d0cd7c6de184f957053b5b22e6c0 Mon Sep 17 00:00:00 2001
+From d0b213eb30e93e0e58ad92626ca98733fa057d29 Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Fri, 22 May 2026 18:48:45 -0400
 Subject: [PATCH 30/46] Add embedded browser: CDP screencast/input session +
@@ -18,25 +18,25 @@ Subject: [PATCH 30/46] Add embedded browser: CDP screencast/input session +
  create mode 100644 app/src/browser/view.rs
 
 diff --git a/Cargo.lock b/Cargo.lock
-index d4f6a40b..5acac459 100644
+index 789a4a2c..738331bf 100644
 --- a/Cargo.lock
 +++ b/Cargo.lock
-@@ -14800,6 +14800,7 @@ dependencies = [
-  "toml 0.8.23",
-  "toml_edit 0.25.6+spec-1.1.0",
-  "tracing",
+@@ -14901,6 +14901,7 @@ dependencies = [
+  "tracing-futures",
+  "tracing-opentelemetry",
+  "tracing-subscriber",
 + "tungstenite",
   "typed-path 0.10.0",
   "ui_components",
   "unicase",
 diff --git a/Cargo.toml b/Cargo.toml
-index 6cafc465..3602f8e1 100644
+index 7fda31f5..64095359 100644
 --- a/Cargo.toml
 +++ b/Cargo.toml
-@@ -280,6 +280,11 @@ toml_edit = "0.25.5"
- tower = "0.5.2"
- tower-http = "0.6.6"
- tracing = "0.1.40"
+@@ -296,6 +296,11 @@ tracing-subscriber = { version = "0.3.22", default-features = false, features =
+   "registry",
+   "std",
+ ] }
 +# Blocking WebSocket client for the embedded browser pane's CDP screencast channel
 +# (oh-my-warp). This is already in the tree transitively (async-tungstenite wraps
 +# it); we use it directly on a dedicated thread to avoid async-runtime integration.
@@ -46,13 +46,13 @@ index 6cafc465..3602f8e1 100644
    "lang-rust",
    "lang-go",
 diff --git a/app/Cargo.toml b/app/Cargo.toml
-index 7248eca3..349d76ef 100644
+index 4745aac2..9da93320 100644
 --- a/app/Cargo.toml
 +++ b/app/Cargo.toml
-@@ -212,6 +212,7 @@ tikv-jemallocator = { version = "0.6", optional = true, features = [
- toml = "0.8.13"
+@@ -216,6 +216,7 @@ toml = "0.8.13"
  toml_edit.workspace = true
  tracing.workspace = true
+ tracing-futures = { workspace = true, features = ["futures-03"] }
 +tungstenite.workspace = true
  ui_components.workspace = true
  unicase = "2.7.0"
@@ -1264,10 +1264,10 @@ index 00000000..6d0b1638
 +    }
 +}
 diff --git a/app/src/lib.rs b/app/src/lib.rs
-index 0170dfa6..9e2e1c12 100644
+index ae9387c8..84278e14 100644
 --- a/app/src/lib.rs
 +++ b/app/src/lib.rs
-@@ -12,6 +12,7 @@ mod auth;
+@@ -11,6 +11,7 @@ mod auth;
  mod autoupdate;
  mod banner;
  mod billing;

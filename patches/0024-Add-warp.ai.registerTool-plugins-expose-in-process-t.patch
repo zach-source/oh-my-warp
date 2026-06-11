@@ -1,4 +1,4 @@
-From 3e67063865589d330a1d8fc76791a6ec46315490 Mon Sep 17 00:00:00 2001
+From a658ea81e63ea49485ce09cc2c3ff40b33bdb20c Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Thu, 21 May 2026 21:48:35 -0400
 Subject: [PATCH 24/46] Add warp.ai.registerTool: plugins expose in-process
@@ -104,7 +104,7 @@ index b40bd77d..8085e779 100644
              #[allow(deprecated)]
              (!resources.is_empty() || !tools.is_empty()).then_some(MCPContext {
 diff --git a/app/src/ai/blocklist/action_model/execute/call_mcp_tool.rs b/app/src/ai/blocklist/action_model/execute/call_mcp_tool.rs
-index 11ad18b4..5a45de54 100644
+index 2ac150a8..f71a5f0d 100644
 --- a/app/src/ai/blocklist/action_model/execute/call_mcp_tool.rs
 +++ b/app/src/ai/blocklist/action_model/execute/call_mcp_tool.rs
 @@ -102,6 +102,57 @@ impl CallMCPToolExecutor {

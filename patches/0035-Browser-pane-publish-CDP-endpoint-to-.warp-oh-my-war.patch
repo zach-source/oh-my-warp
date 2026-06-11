@@ -1,4 +1,4 @@
-From c855ecadc616fcccf2df1801ece9d2ab0f57f8e2 Mon Sep 17 00:00:00 2001
+From 939ed52c4337a02080e3f10cb5ecf7d120b459c6 Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Sun, 24 May 2026 16:08:29 -0400
 Subject: [PATCH 35/46] Browser pane: publish CDP endpoint to

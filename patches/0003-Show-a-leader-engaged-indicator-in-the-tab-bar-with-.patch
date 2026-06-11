@@ -1,4 +1,4 @@
-From ffe107ad32dfa593d3c5f6f5d3b5924f224f2f93 Mon Sep 17 00:00:00 2001
+From e8d3cc3848f9bd11392751f1fe454e92631abb18 Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Wed, 20 May 2026 11:51:24 -0400
 Subject: [PATCH 03/46] Show a leader-engaged indicator in the tab bar with
@@ -17,10 +17,10 @@ can tell when a tmux-style leader/prefix is armed:
  3 files changed, 110 insertions(+)
 
 diff --git a/app/src/workspace/view.rs b/app/src/workspace/view.rs
-index 859ef28c..16589f56 100644
+index 0b4ce5b2..96e8a71f 100644
 --- a/app/src/workspace/view.rs
 +++ b/app/src/workspace/view.rs
-@@ -19228,6 +19228,40 @@ impl Workspace {
+@@ -19719,6 +19719,40 @@ impl Workspace {
          .finish()
      }
  
@@ -61,7 +61,7 @@ index 859ef28c..16589f56 100644
      fn render_tab_bar_contents(
          &self,
          hover_fixed_width: Option<f32>,
-@@ -19235,6 +19269,10 @@ impl Workspace {
+@@ -19726,6 +19760,10 @@ impl Workspace {
          ctx: &AppContext,
      ) -> Box<dyn Element> {
          let mut tab_bar = Flex::row().with_cross_axis_alignment(CrossAxisAlignment::Center);
@@ -73,10 +73,10 @@ index 859ef28c..16589f56 100644
              .auth_state
              .is_user_web_anonymous_user()
 diff --git a/crates/warpui_core/src/core/app.rs b/crates/warpui_core/src/core/app.rs
-index 3707e453..f35ad971 100644
+index 4e68ba25..08aa81af 100644
 --- a/crates/warpui_core/src/core/app.rs
 +++ b/crates/warpui_core/src/core/app.rs
-@@ -600,6 +600,12 @@ pub struct AppContext {
+@@ -603,6 +603,12 @@ pub struct AppContext {
      rendering_config: rendering::Config,
      global_actions: HashMap<String, Vec<Box<GlobalActionCallback>>>,
      keystroke_matcher: Matcher,
@@ -89,7 +89,7 @@ index 3707e453..f35ad971 100644
      next_task_id: usize,
      weak_self: rc::Weak<RefCell<Self>>,
      pub(super) subscriptions: HashMap<EntityId, Vec<Subscription>>,
-@@ -760,6 +766,8 @@ impl AppContext {
+@@ -764,6 +770,8 @@ impl AppContext {
              presenters: Default::default(),
              rendering_config: Default::default(),
              keystroke_matcher: Default::default(),
@@ -98,7 +98,7 @@ index 3707e453..f35ad971 100644
              disabled_key_bindings_windows: Default::default(),
              next_task_id: 0,
              weak_self: rc::Weak::default(),
-@@ -962,6 +970,46 @@ impl AppContext {
+@@ -982,6 +990,46 @@ impl AppContext {
          }
      }
  
@@ -145,7 +145,7 @@ index 3707e453..f35ad971 100644
      pub(crate) fn on_global_shortcut_triggered(&mut self, shortcut: Keystroke) {
          if let Some(global_action) = self.global_shortcuts.remove(&shortcut) {
              self.dispatch_global_action(global_action.action, global_action.args.as_ref());
-@@ -3242,6 +3290,12 @@ impl AppContext {
+@@ -3266,6 +3314,12 @@ impl AppContext {
              }
          }
  

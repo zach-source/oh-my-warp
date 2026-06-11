@@ -1,4 +1,4 @@
-From dd68a1f13789afe6c5e8fe86d81722384a9877db Mon Sep 17 00:00:00 2001
+From e9ba4af67a3e21115bc3aa647266f187ead1ef22 Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Thu, 21 May 2026 16:42:15 -0400
 Subject: [PATCH 21/46] Fix plugin host crash from blocking IPC in

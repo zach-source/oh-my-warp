@@ -1,4 +1,4 @@
-From d4231ab6b06b17eef01b7274ae62d6563a681ade Mon Sep 17 00:00:00 2001
+From 01c55c257fc0ed292b8d927047a7b020e8569d6f Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Thu, 21 May 2026 21:01:13 -0400
 Subject: [PATCH 23/46] Add plugin manifest, engines.warp gating, capabilities,
@@ -16,10 +16,10 @@ Subject: [PATCH 23/46] Add plugin manifest, engines.warp gating, capabilities,
  create mode 100644 app/src/plugin/host/native/manifest.rs
 
 diff --git a/Cargo.lock b/Cargo.lock
-index 36fcd458..d4f6a40b 100644
+index b40b91fa..789a4a2c 100644
 --- a/Cargo.lock
 +++ b/Cargo.lock
-@@ -14755,6 +14755,7 @@ dependencies = [
+@@ -14853,6 +14853,7 @@ dependencies = [
   "rustls",
   "schemars",
   "security-framework-sys",
@@ -28,10 +28,10 @@ index 36fcd458..d4f6a40b 100644
   "sentry-log",
   "serde",
 diff --git a/app/Cargo.toml b/app/Cargo.toml
-index f11fce77..7248eca3 100644
+index 4d53c8f2..4745aac2 100644
 --- a/app/Cargo.toml
 +++ b/app/Cargo.toml
-@@ -178,6 +178,7 @@ rust-embed.workspace = true
+@@ -181,6 +181,7 @@ rust-embed.workspace = true
  sentry-log = { workspace = true, optional = true }
  inventory = "0.3"
  schemars = "1"

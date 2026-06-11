@@ -1,4 +1,4 @@
-From e415ccf8447878054b99494bb5c8263f9bb19b84 Mon Sep 17 00:00:00 2001
+From eb6a88877422d82d1ea8e2c50cc132153a0aed83 Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Wed, 20 May 2026 11:05:27 -0400
 Subject: [PATCH 01/46] Add tmux-style leader-key (ctrl-b) chords for tab
@@ -29,7 +29,7 @@ Not yet compiled locally (repo pins Rust 1.92.0 via nix devshell); verify with
  create mode 100644 app/src/util/leader.rs
 
 diff --git a/app/src/util/bindings.rs b/app/src/util/bindings.rs
-index 9c4b89b3..edcd1b59 100644
+index 54c56951..68bafd92 100644
 --- a/app/src/util/bindings.rs
 +++ b/app/src/util/bindings.rs
 @@ -213,7 +213,11 @@ lazy_static! {
@@ -125,7 +125,7 @@ index 5f5f1281..338a6274 100644
  pub mod links;
  pub mod openable_file_type;
 diff --git a/app/src/workspace/mod.rs b/app/src/workspace/mod.rs
-index 0e53d2a7..9f847686 100644
+index d80043dd..7b3aab20 100644
 --- a/app/src/workspace/mod.rs
 +++ b/app/src/workspace/mod.rs
 @@ -81,6 +81,10 @@ pub fn init(app: &mut AppContext) {

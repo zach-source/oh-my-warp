@@ -1,4 +1,4 @@
-From 5822dc69a0f176c7b2edc75d1cd815fdb608fb46 Mon Sep 17 00:00:00 2001
+From 584aa79fd70e8fdecb362fcefeb322c54484d5c6 Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Tue, 2 Jun 2026 22:49:11 -0400
 Subject: [PATCH 43/46] Polish warp.ui.showMarkdown modal (oh-my-warp)
@@ -28,10 +28,10 @@ same; only its presentation improves.
  2 files changed, 66 insertions(+), 17 deletions(-)
 
 diff --git a/app/src/workspace/view.rs b/app/src/workspace/view.rs
-index 0ead4b1b..ac466a2f 100644
+index baa6f0bc..ac840158 100644
 --- a/app/src/workspace/view.rs
 +++ b/app/src/workspace/view.rs
-@@ -2055,11 +2055,23 @@ impl Workspace {
+@@ -2082,11 +2082,23 @@ impl Workspace {
      ) -> ModalViewState<Modal<PluginMarkdownModal>> {
          let body = ctx.add_view(PluginMarkdownModal::new);
          let modal = ctx.add_typed_action_view(|ctx| {

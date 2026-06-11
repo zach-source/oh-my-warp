@@ -1,4 +1,4 @@
-From 537dbf1955b2ecdf87448124248d6fd1b81fe5f4 Mon Sep 17 00:00:00 2001
+From 665f769b66b111722534e25ac287988d83a7e622 Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Thu, 21 May 2026 11:37:28 -0400
 Subject: [PATCH 18/46] Surface plugin commands in the command palette + run
@@ -146,7 +146,7 @@ index 00000000..840a20c0
 +    }
 +}
 diff --git a/app/src/search/command_palette/view.rs b/app/src/search/command_palette/view.rs
-index 753756c2..8410fae5 100644
+index 4f4041ff..d4a96ad9 100644
 --- a/app/src/search/command_palette/view.rs
 +++ b/app/src/search/command_palette/view.rs
 @@ -713,6 +713,69 @@ impl View {

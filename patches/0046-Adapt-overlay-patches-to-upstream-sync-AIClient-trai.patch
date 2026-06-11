@@ -1,4 +1,4 @@
-From 754701e10ddeab9314aad9dcd50de9b31fd8f260 Mon Sep 17 00:00:00 2001
+From a337a612a6b0eeb220c953927f9c7be430c6560d Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Fri, 5 Jun 2026 00:30:21 -0400
 Subject: [PATCH 46/46] Adapt overlay patches to upstream sync (AIClient trait,
@@ -6,16 +6,370 @@ Subject: [PATCH 46/46] Adapt overlay patches to upstream sync (AIClient trait,
 
 Upstream 03ad9ea9 (216 commits) changed APIs our patches use: the AIClient trait gained 11 methods and list_agents dropped its repo param, so GrpcBridgeAIClient delegates the new ones to inner; Dropdown<T> now requires T: PartialEq, so BackendAction and GrpcHarnessAction derive it; SpawnAgentRequest.prompt is now Option<String>; AmbientAgentTask gained a run_time field. cargo check -p warp --lib passes.
 ---
- app/src/server/server_api/ai/bridge.rs        | 81 ++++++++++++++++++-
- .../settings_view/features/agent_backend.rs   |  2 +-
- .../settings_view/features/grpc_harness.rs    |  2 +-
- 3 files changed, 79 insertions(+), 6 deletions(-)
+ Cargo.lock                                    | 101 +++++++++++-------
+ app/src/server/server_api/ai/bridge.rs        |  89 ++++++++++++++-
+ .../settings_view/features/agent_backend.rs   |   2 +-
+ .../settings_view/features/grpc_harness.rs    |   2 +-
+ 4 files changed, 149 insertions(+), 45 deletions(-)
 
+diff --git a/Cargo.lock b/Cargo.lock
+index 738331bf..4bdbe59d 100644
+--- a/Cargo.lock
++++ b/Cargo.lock
+@@ -345,7 +345,7 @@ dependencies = [
+  "notify-debouncer-full",
+  "persistence",
+  "priority-queue",
+- "prost-types",
++ "prost-types 0.14.3",
+  "rand 0.8.6",
+  "rayon",
+  "regex",
+@@ -603,7 +603,7 @@ dependencies = [
+  "objc2-foundation 0.3.2",
+  "parking_lot",
+  "percent-encoding",
+- "windows-sys 0.52.0",
++ "windows-sys 0.59.0",
+  "wl-clipboard-rs",
+  "x11rb",
+ ]
+@@ -2612,8 +2612,8 @@ checksum = "3281776daed25d20f2a7846151561bac63091d41115ba9a5d8ac50891fb749d6"
+ dependencies = [
+  "candle-core",
+  "candle-nn",
+- "prost",
+- "prost-build",
++ "prost 0.14.3",
++ "prost-build 0.14.3",
+ ]
+ 
+ [[package]]
+@@ -3108,7 +3108,7 @@ version = "3.0.0"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "fde0e0ec90c9dfb3b4b1a0891a7dcd0e2bffde2f7efed5fe7c9bb00e5bfb915e"
+ dependencies = [
+- "windows-sys 0.52.0",
++ "windows-sys 0.59.0",
+ ]
+ 
+ [[package]]
+@@ -4425,7 +4425,7 @@ checksum = "6738d2e996274e499bc7b0d693c858b7720b9cd2543a0643a3087e6cb0a4fa16"
+ dependencies = [
+  "cfg-if",
+  "libc",
+- "windows-sys 0.52.0",
++ "windows-sys 0.61.2",
+ ]
+ 
+ [[package]]
+@@ -4730,7 +4730,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "33d852cb9b869c2a9b3df2f71a3074817f01e1844f839a144f5fcef059a4eb5d"
+ dependencies = [
+  "libc",
+- "windows-sys 0.52.0",
++ "windows-sys 0.59.0",
+ ]
+ 
+ [[package]]
+@@ -4896,7 +4896,7 @@ name = "field_mask"
+ version = "0.0.0"
+ dependencies = [
+  "itertools 0.14.0",
+- "prost",
++ "prost 0.14.3",
+  "prost-reflect",
+  "prost-types 0.14.3",
+  "thiserror 2.0.17",
+@@ -6344,7 +6344,7 @@ dependencies = [
+  "log",
+  "oauth2",
+  "prevent_sleep",
+- "prost",
++ "prost 0.14.3",
+  "reqwest",
+  "serde",
+  "serde_json",
+@@ -6464,7 +6464,7 @@ dependencies = [
+  "libc",
+  "percent-encoding",
+  "pin-project-lite",
+- "socket2 0.5.10",
++ "socket2 0.6.0",
+  "system-configuration",
+  "tokio",
+  "tower-service",
+@@ -6819,7 +6819,7 @@ dependencies = [
+  "ndarray",
+  "ort",
+  "parking_lot",
+- "prost",
++ "prost 0.14.3",
+  "rust-embed 8.7.2",
+  "serde",
+  "smol_str",
+@@ -7006,7 +7006,7 @@ checksum = "3640c1c38b8e4e43584d8df18be5fc6b0aa314ce6ebf51b53313d4306cca8e46"
+ dependencies = [
+  "hermit-abi 0.5.2",
+  "libc",
+- "windows-sys 0.52.0",
++ "windows-sys 0.61.2",
+ ]
+ 
+ [[package]]
+@@ -7200,7 +7200,7 @@ dependencies = [
+  "portable-atomic",
+  "portable-atomic-util",
+  "serde_core",
+- "windows-sys 0.52.0",
++ "windows-sys 0.61.2",
+ ]
+ 
+ [[package]]
+@@ -9402,7 +9402,7 @@ dependencies = [
+  "opentelemetry-http",
+  "opentelemetry-proto",
+  "opentelemetry_sdk",
+- "prost",
++ "prost 0.14.3",
+  "reqwest",
+  "thiserror 2.0.17",
+  "zstd",
+@@ -9416,7 +9416,7 @@ checksum = "56d658ba1faf63f7b9c492cfbe6e0ec365440a16132d3270c1065f7b33f1b638"
+ dependencies = [
+  "opentelemetry",
+  "opentelemetry_sdk",
+- "prost",
++ "prost 0.14.3",
+ ]
+ 
+ [[package]]
+@@ -9529,7 +9529,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "7d8fae84b431384b68627d0f9b3b1245fcf9f46f6c0e3dc902e9dce64edd1967"
+ dependencies = [
+  "libc",
+- "windows-sys 0.45.0",
++ "windows-sys 0.61.2",
+ ]
+ 
+ [[package]]
+@@ -10040,7 +10040,7 @@ dependencies = [
+  "flate2",
+  "num",
+  "paste",
+- "prost",
++ "prost 0.14.3",
+ ]
+ 
+ [[package]]
+@@ -10257,6 +10257,16 @@ dependencies = [
+  "syn 2.0.117",
+ ]
+ 
++[[package]]
++name = "prost"
++version = "0.13.5"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "2796faa41db3ec313a31f7624d9286acf277b52de526150b7e69f3debf891ee5"
++dependencies = [
++ "bytes",
++ "prost-derive 0.13.5",
++]
++
+ [[package]]
+ name = "prost"
+ version = "0.14.3"
+@@ -10264,7 +10274,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "d2ea70524a2f82d518bce41317d0fae74151505651af45faf1ffbd6fd33f0568"
+ dependencies = [
+  "bytes",
+- "prost-derive",
++ "prost-derive 0.14.3",
+ ]
+ 
+ [[package]]
+@@ -10293,19 +10303,32 @@ version = "0.14.3"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "343d3bd7056eda839b03204e68deff7d1b13aba7af2b2fd16890697274262ee7"
+ dependencies = [
+- "heck 0.4.1",
+- "itertools 0.11.0",
++ "heck 0.5.0",
++ "itertools 0.14.0",
+  "log",
+  "multimap",
+  "petgraph 0.8.3",
+  "prettyplease",
+- "prost",
+- "prost-types",
++ "prost 0.14.3",
++ "prost-types 0.14.3",
+  "regex",
+  "syn 2.0.117",
+  "tempfile",
+ ]
+ 
++[[package]]
++name = "prost-derive"
++version = "0.13.5"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "8a56d757972c98b346a9b766e3f02746cde6dd1cd1d1d563472929fdd74bec4d"
++dependencies = [
++ "anyhow",
++ "itertools 0.14.0",
++ "proc-macro2",
++ "quote",
++ "syn 2.0.117",
++]
++
+ [[package]]
+ name = "prost-derive"
+ version = "0.14.3"
+@@ -10313,7 +10336,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "27c6023962132f4b30eb4c172c91ce92d933da334c59c23cddee82358ddafb0b"
+ dependencies = [
+  "anyhow",
+- "itertools 0.11.0",
++ "itertools 0.14.0",
+  "proc-macro2",
+  "quote",
+  "syn 2.0.117",
+@@ -10325,7 +10348,7 @@ version = "0.16.3"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "b89455ef41ed200cafc47c76c552ee7792370ac420497e551f16123a9135f76e"
+ dependencies = [
+- "prost",
++ "prost 0.14.3",
+  "prost-reflect-derive",
+  "prost-types 0.14.3",
+ ]
+@@ -10366,7 +10389,7 @@ version = "0.14.3"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "8991c4cbdb8bc5b11f0b074ffe286c30e523de90fee5ba8132f1399f23cb3dd7"
+ dependencies = [
+- "prost",
++ "prost 0.14.3",
+ ]
+ 
+ [[package]]
+@@ -10567,7 +10590,7 @@ dependencies = [
+  "once_cell",
+  "socket2 0.5.10",
+  "tracing",
+- "windows-sys 0.52.0",
++ "windows-sys 0.59.0",
+ ]
+ 
+ [[package]]
+@@ -11014,8 +11037,8 @@ dependencies = [
+  "futures-lite 1.13.0",
+  "getrandom 0.2.16",
+  "log",
+- "prost",
+- "prost-build",
++ "prost 0.14.3",
++ "prost-build 0.14.3",
+  "repo_metadata",
+  "serde",
+  "thiserror 2.0.17",
+@@ -11457,7 +11480,7 @@ dependencies = [
+  "errno",
+  "libc",
+  "linux-raw-sys 0.4.15",
+- "windows-sys 0.52.0",
++ "windows-sys 0.59.0",
+ ]
+ 
+ [[package]]
+@@ -11470,7 +11493,7 @@ dependencies = [
+  "errno",
+  "libc",
+  "linux-raw-sys 0.11.0",
+- "windows-sys 0.52.0",
++ "windows-sys 0.61.2",
+ ]
+ 
+ [[package]]
+@@ -11538,7 +11561,7 @@ dependencies = [
+  "security-framework 3.5.1",
+  "security-framework-sys",
+  "webpki-root-certs 1.0.1",
+- "windows-sys 0.52.0",
++ "windows-sys 0.61.2",
+ ]
+ 
+ [[package]]
+@@ -13189,7 +13212,7 @@ dependencies = [
+  "getrandom 0.3.4",
+  "once_cell",
+  "rustix 1.1.2",
+- "windows-sys 0.52.0",
++ "windows-sys 0.61.2",
+ ]
+ 
+ [[package]]
+@@ -13449,8 +13472,8 @@ version = "0.3.0"
+ source = "git+https://github.com/warpdotdev/tink-rust?rev=54b9ac9af93b0c08b446a7bc0582836c9403a71b#54b9ac9af93b0c08b446a7bc0582836c9403a71b"
+ dependencies = [
+  "base64 0.22.1",
+- "prost",
+- "prost-build",
++ "prost 0.14.3",
++ "prost-build 0.14.3",
+  "serde",
+ ]
+ 
+@@ -14835,9 +14858,9 @@ dependencies = [
+  "pin-project",
+  "plist",
+  "pprof",
+- "prost",
+- "prost-build",
+- "prost-types",
++ "prost 0.14.3",
++ "prost-build 0.14.3",
++ "prost-types 0.14.3",
+  "qrcode",
+  "rand 0.8.6",
+  "rangemap",
+@@ -15344,7 +15367,7 @@ name = "warp_multi_agent_api"
+ version = "0.0.0"
+ source = "git+https://github.com/warpdotdev/warp-proto-apis.git?rev=97d1b367b955c562812e0a1315a6ec7ee6a5389e#97d1b367b955c562812e0a1315a6ec7ee6a5389e"
+ dependencies = [
+- "prost",
++ "prost 0.14.3",
+  "prost-reflect",
+  "prost-reflect-build",
+  "prost-types 0.14.3",
+@@ -16349,7 +16372,7 @@ version = "0.1.11"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "c2a7b1c03c876122aa43f3020e6c3c3ee5c05081c9a00739faf7503aeba10d22"
+ dependencies = [
+- "windows-sys 0.52.0",
++ "windows-sys 0.61.2",
+ ]
+ 
+ [[package]]
 diff --git a/app/src/server/server_api/ai/bridge.rs b/app/src/server/server_api/ai/bridge.rs
-index c1063b2a..5db8f379 100644
+index c1063b2a..82b7dd48 100644
 --- a/app/src/server/server_api/ai/bridge.rs
 +++ b/app/src/server/server_api/ai/bridge.rs
-@@ -210,7 +210,7 @@ impl AIClient for GrpcBridgeAIClient {
+@@ -117,6 +117,14 @@ impl AIClient for GrpcBridgeAIClient {
+         self.inner.get_request_limit_info().await
+     }
+ 
++    async fn rename_conversation(
++        &self,
++        conversation_id: String,
++        title: String,
++    ) -> anyhow::Result<RenameConversationResponse, anyhow::Error> {
++        self.inner.rename_conversation(conversation_id, title).await
++    }
++
+     async fn get_feature_model_choices(&self) -> Result<ModelsByFeature, anyhow::Error> {
+         self.inner.get_feature_model_choices().await
+     }
+@@ -210,7 +218,7 @@ impl AIClient for GrpcBridgeAIClient {
              UserQueryMode::Orchestrate => pb::AgentMode::Orchestrate,
          } as i32;
          let pb_req = pb::SpawnAgentRequest {
@@ -24,7 +378,7 @@ index c1063b2a..5db8f379 100644
              mode,
              title: request.title.unwrap_or_default(),
              conversation_id: request.conversation_id.unwrap_or_default(),
-@@ -297,6 +297,8 @@ impl AIClient for GrpcBridgeAIClient {
+@@ -297,6 +305,8 @@ impl AIClient for GrpcBridgeAIClient {
              artifacts: vec![],
              last_event_sequence: None,
              children: vec![],
@@ -33,7 +387,7 @@ index c1063b2a..5db8f379 100644
          })
      }
  
-@@ -367,11 +369,82 @@ impl AIClient for GrpcBridgeAIClient {
+@@ -367,11 +377,82 @@ impl AIClient for GrpcBridgeAIClient {
              .await
      }
  

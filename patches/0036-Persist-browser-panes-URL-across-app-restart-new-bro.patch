@@ -1,4 +1,4 @@
-From 09f43befae55092fb41b82f7dda3c1fc75399b86 Mon Sep 17 00:00:00 2001
+From 1937943108880b2b83a530114cdc486fee6117ac Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Mon, 25 May 2026 01:27:52 -0400
 Subject: [PATCH 36/46] Persist browser panes (URL) across app restart: new
@@ -21,10 +21,10 @@ Subject: [PATCH 36/46] Persist browser panes (URL) across app restart: new
  create mode 100644 crates/persistence/migrations/2026-05-25-000000_add_browser_panes/up.sql
 
 diff --git a/app/src/app_state.rs b/app/src/app_state.rs
-index 142b6434..1b78684d 100644
+index b2363d3f..3c6f5589 100644
 --- a/app/src/app_state.rs
 +++ b/app/src/app_state.rs
-@@ -132,9 +132,12 @@ pub enum LeafContents {
+@@ -146,9 +146,12 @@ pub enum LeafContents {
      /// The in-app network log pane. Not persisted across restarts because the
      /// backing log is an in-memory ring buffer that starts empty on launch.
      NetworkLog,
@@ -40,7 +40,7 @@ index 142b6434..1b78684d 100644
      /// An entrypoint pane type to launch other pane types from a search palette. The default view
      /// when creating a tab.
      Welcome {
-@@ -163,9 +166,10 @@ impl LeafContents {
+@@ -177,9 +180,10 @@ impl LeafContents {
              LeafContents::NetworkLog
              // Environment management panes are opened on-demand via workspace
              // actions and have no persistable state.
@@ -95,7 +95,7 @@ index f3d3ad6e..1896a87c 100644
                  | LeafContents::AIDocument(_)
                  | LeafContents::EnvironmentManagement(_)
 diff --git a/app/src/pane_group/mod.rs b/app/src/pane_group/mod.rs
-index 26611175..f987fcc2 100644
+index 8a887ace..5af2b6fc 100644
 --- a/app/src/pane_group/mod.rs
 +++ b/app/src/pane_group/mod.rs
 @@ -1949,12 +1949,16 @@ impl PaneGroup {
@@ -139,7 +139,7 @@ index f5a901b9..948c0224 100644
  
      fn has_application_focus(&self, ctx: &mut ViewContext<PaneGroup>) -> bool {
 diff --git a/app/src/persistence/sqlite.rs b/app/src/persistence/sqlite.rs
-index 9114e58c..ec8d3977 100644
+index 4d952888..f1338b4d 100644
 --- a/app/src/persistence/sqlite.rs
 +++ b/app/src/persistence/sqlite.rs
 @@ -40,7 +40,7 @@ use lsp::supported_servers::LSPServerType;
@@ -151,7 +151,7 @@ index 9114e58c..ec8d3977 100644
  use uuid::Uuid;
  use warpui::platform::FullscreenState;
  use warpui::windowing::{MIN_WINDOW_HEIGHT, MIN_WINDOW_WIDTH};
-@@ -1096,9 +1096,8 @@ fn save_pane_state(
+@@ -1134,9 +1134,8 @@ fn save_pane_state(
          LeafContents::GetStarted => GET_STARTED_PANE_KIND,
          LeafContents::Welcome { .. } => WELCOME_PANE_KIND,
          LeafContents::AIDocument(_) => AI_DOCUMENT_PANE_KIND,
@@ -163,7 +163,7 @@ index 9114e58c..ec8d3977 100644
              // These pane types are filtered out before this function is
              // called; see `LeafContents::is_persisted` and the skip in
              // `save_app_state`. Reaching this arm would mean a `pane_nodes`
-@@ -1340,8 +1339,14 @@ fn save_pane_state(
+@@ -1378,8 +1377,14 @@ fn save_pane_state(
          LeafContents::NetworkLog => {
              // Unreachable: filtered by `is_persisted` in `save_app_state`.
          }
@@ -180,7 +180,7 @@ index 9114e58c..ec8d3977 100644
          }
      }
  
-@@ -2327,6 +2332,13 @@ fn read_node(conn: &mut SqliteConnection, node: model::PaneNode) -> Result<PaneN
+@@ -2365,6 +2370,13 @@ fn read_node(conn: &mut SqliteConnection, node: model::PaneNode) -> Result<PaneN
                          task_id,
                      })
                  }
@@ -195,10 +195,10 @@ index 9114e58c..ec8d3977 100644
              };
  
 diff --git a/app/src/workspace/view.rs b/app/src/workspace/view.rs
-index df596edf..cb496bec 100644
+index b42f7e46..61858b31 100644
 --- a/app/src/workspace/view.rs
 +++ b/app/src/workspace/view.rs
-@@ -2155,10 +2155,10 @@ impl Workspace {
+@@ -2182,10 +2182,10 @@ impl Workspace {
                  me.show_plugin_palette(title.clone(), items.clone(), ctx);
              }
              crate::plugin::PluginHostEvent::OpenWebTab { url } => {
@@ -213,7 +213,7 @@ index df596edf..cb496bec 100644
              }
          });
      }
-@@ -14364,12 +14364,17 @@ impl Workspace {
+@@ -14606,12 +14606,17 @@ impl Workspace {
          });
      }
  
@@ -234,7 +234,7 @@ index df596edf..cb496bec 100644
          })));
          self.add_tab_with_pane_layout(
              panes_layout,
-@@ -22740,7 +22745,7 @@ impl TypedActionView for Workspace {
+@@ -23344,7 +23349,7 @@ impl TypedActionView for Workspace {
                  self.open_browser_pane(ctx);
              }
              NewWebTab => {
@@ -265,7 +265,7 @@ index 00000000..72582920
 +    url TEXT NOT NULL
 +);
 diff --git a/crates/persistence/src/model.rs b/crates/persistence/src/model.rs
-index ae5c0e01..e04f1d89 100644
+index d4fbf395..e6822182 100644
 --- a/crates/persistence/src/model.rs
 +++ b/crates/persistence/src/model.rs
 @@ -10,9 +10,9 @@ use warp_multi_agent_api::{self as api};
@@ -280,8 +280,8 @@ index ae5c0e01..e04f1d89 100644
 +    folders, generic_string_objects, ignored_suggestions, mcp_environment_variables,
      mcp_server_installations, mcp_server_panes, notebook_panes, notebooks, object_actions,
      object_metadata, object_permissions, pane_branches, pane_leaves, pane_nodes, panels,
-     project_rules, projects, server_experiments, settings_panes, tabs, team_members, team_settings,
-@@ -570,6 +570,9 @@ pub const AI_DOCUMENT_PANE_KIND: &str = "ai_document";
+     project_rules, projects, server_experiments, settings_panes, tab_groups, tabs, team_members,
+@@ -594,6 +594,9 @@ pub const AI_DOCUMENT_PANE_KIND: &str = "ai_document";
  /// The [`pane_leaves::kind`] value for ambient agent (cloud mode) panes.
  pub const AMBIENT_AGENT_PANE_KIND: &str = "ambient_agent";
  
@@ -291,7 +291,7 @@ index ae5c0e01..e04f1d89 100644
  #[derive(Insertable)]
  #[diesel(table_name = terminal_panes)]
  pub struct NewTerminalPane {
-@@ -679,6 +682,24 @@ pub struct NewAmbientAgentPane {
+@@ -703,6 +706,24 @@ pub struct NewAmbientAgentPane {
      pub task_id: Option<String>,
  }
  
@@ -317,7 +317,7 @@ index ae5c0e01..e04f1d89 100644
  #[diesel(table_name = pane_branches)]
  pub struct NewPaneBranch {
 diff --git a/crates/persistence/src/schema.rs b/crates/persistence/src/schema.rs
-index 788d3b85..8b3ef79c 100644
+index 8f2383dd..91e8fe5e 100644
 --- a/crates/persistence/src/schema.rs
 +++ b/crates/persistence/src/schema.rs
 @@ -75,6 +75,14 @@ diesel::table! {
@@ -335,7 +335,7 @@ index 788d3b85..8b3ef79c 100644
  diesel::table! {
      blocks (id) {
          id -> Nullable<Integer>,
-@@ -503,6 +511,7 @@ diesel::table! {
+@@ -514,6 +522,7 @@ diesel::table! {
  
  diesel::joinable!(ambient_agent_panes -> pane_nodes (id));
  diesel::joinable!(app -> windows (active_window_id));
@@ -343,7 +343,7 @@ index 788d3b85..8b3ef79c 100644
  diesel::joinable!(code_pane_tabs -> code_panes (code_pane_id));
  diesel::joinable!(object_permissions -> object_metadata (object_metadata_id));
  diesel::joinable!(pane_branches -> pane_nodes (pane_node_id));
-@@ -517,6 +526,7 @@ diesel::joinable!(workspace_language_server -> workspace_metadata (workspace_id)
+@@ -530,6 +539,7 @@ diesel::joinable!(workspace_language_server -> workspace_metadata (workspace_id)
  diesel::allow_tables_to_appear_in_same_query!(
      ambient_agent_panes,
      app,

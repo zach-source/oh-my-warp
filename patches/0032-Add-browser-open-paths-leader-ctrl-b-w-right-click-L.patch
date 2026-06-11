@@ -1,4 +1,4 @@
-From 85fa952c842679ef52691561379d389eec0706a4 Mon Sep 17 00:00:00 2001
+From 87f427eaa27b7099c4786e4f4ad418b3b823fdc9 Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Fri, 22 May 2026 18:48:46 -0400
 Subject: [PATCH 32/46] Add browser open paths: leader ctrl-b w, right-click
@@ -27,10 +27,10 @@ index d96ccbe8..9ffd7c08 100644
      ];
  
 diff --git a/app/src/tab.rs b/app/src/tab.rs
-index 66dc1cfe..4ccb3837 100644
+index 82780ddb..f0d65918 100644
 --- a/app/src/tab.rs
 +++ b/app/src/tab.rs
-@@ -421,6 +421,12 @@ impl TabData {
+@@ -428,6 +428,12 @@ impl TabData {
          menu_items.append(&mut vec![MenuItemFields::new("Rename tab")
              .with_on_select_action(WorkspaceAction::RenameTab(index))
              .into_item()]);
@@ -44,7 +44,7 @@ index 66dc1cfe..4ccb3837 100644
          // sense unless you're able to rename a tab).
          let title = self.pane_group.as_ref(ctx).custom_title(ctx);
 diff --git a/app/src/util/bindings.rs b/app/src/util/bindings.rs
-index e0770d9d..cc7da9e3 100644
+index 4065ba6d..989ef92b 100644
 --- a/app/src/util/bindings.rs
 +++ b/app/src/util/bindings.rs
 @@ -26,6 +26,8 @@ pub const MAC_MENUS_CONTEXT: DescriptionContext = DescriptionContext::Custom("ma
@@ -82,10 +82,10 @@ index d326be02..907495c7 100644
  }
  
 diff --git a/app/src/workspace/action.rs b/app/src/workspace/action.rs
-index 95df42d1..0d1963e7 100644
+index 75972e6b..679b995b 100644
 --- a/app/src/workspace/action.rs
 +++ b/app/src/workspace/action.rs
-@@ -761,6 +761,12 @@ pub enum WorkspaceAction {
+@@ -792,6 +792,12 @@ pub enum WorkspaceAction {
      /// Opens (or focuses) the in-app network log pane as a right-split of the
      /// active pane group. Gated on `ContextFlag::NetworkLogConsole`.
      OpenNetworkLogPane,
@@ -98,7 +98,7 @@ index 95df42d1..0d1963e7 100644
  }
  
  impl From<&WorkspaceAction> for LoginGatedFeature {
-@@ -1055,7 +1061,9 @@ impl WorkspaceAction {
+@@ -1094,7 +1100,9 @@ impl WorkspaceAction {
              | ShowHandoffEnvironmentCreationModal
              | ShowCloudModeV2EnvironmentCreationModal
              | OpenCreateAuthSecretModal { .. }
@@ -110,7 +110,7 @@ index 95df42d1..0d1963e7 100644
              ShowHoaOnboardingFlow => false,
              #[cfg(target_family = "wasm")]
 diff --git a/app/src/workspace/mod.rs b/app/src/workspace/mod.rs
-index 9f847686..09a68c1f 100644
+index 7b3aab20..b3f2d4d6 100644
 --- a/app/src/workspace/mod.rs
 +++ b/app/src/workspace/mod.rs
 @@ -68,7 +68,7 @@ use crate::workspace::view::{
@@ -139,10 +139,10 @@ index 9f847686..09a68c1f 100644
              NEW_TERMINAL_TAB_BINDING_NAME,
              BindingDescription::new("New Terminal Tab"),
 diff --git a/app/src/workspace/view.rs b/app/src/workspace/view.rs
-index 6471a6d5..cb94c959 100644
+index c88ba834..5e82d8df 100644
 --- a/app/src/workspace/view.rs
 +++ b/app/src/workspace/view.rs
-@@ -275,8 +275,8 @@ use crate::pane_group::pane::ActionOrigin;
+@@ -279,8 +279,8 @@ use crate::pane_group::pane::ActionOrigin;
  #[cfg(feature = "local_fs")]
  use crate::pane_group::FilePane;
  use crate::pane_group::{
@@ -153,7 +153,7 @@ index 6471a6d5..cb94c959 100644
      ExecutionProfileEditorPane, NetworkLogPane, NewTerminalOptions, PaneGroup, PaneId, PanesLayout,
      TabBarHoverIndex, TerminalPaneId,
  };
-@@ -610,6 +610,7 @@ pub(crate) const OPEN_GLOBAL_SEARCH_BINDING_NAME: &str = "workspace:open_global_
+@@ -614,6 +614,7 @@ pub(crate) const OPEN_GLOBAL_SEARCH_BINDING_NAME: &str = "workspace:open_global_
  pub(crate) const TOGGLE_CONVERSATION_LIST_VIEW_BINDING_NAME: &str =
      "workspace:toggle_conversation_list_view";
  pub(crate) const NEW_TAB_BINDING_NAME: &str = "workspace:new_tab";
@@ -161,7 +161,7 @@ index 6471a6d5..cb94c959 100644
  pub(crate) const NEW_TERMINAL_TAB_BINDING_NAME: &str = "workspace:new_terminal_tab";
  pub(crate) const NEW_AGENT_TAB_BINDING_NAME: &str = "workspace:new_agent_tab";
  pub(crate) const NEW_AMBIENT_AGENT_TAB_BINDING_NAME: &str = "workspace:new_ambient_agent_tab";
-@@ -6483,6 +6484,14 @@ impl Workspace {
+@@ -6560,6 +6561,14 @@ impl Workspace {
              }
          }
  
@@ -176,7 +176,7 @@ index 6471a6d5..cb94c959 100644
          // 3. Cloud Agent (if flags enabled)
          if is_any_ai_enabled
              && FeatureFlag::AgentView.is_enabled()
-@@ -14333,6 +14342,37 @@ impl Workspace {
+@@ -14575,6 +14584,37 @@ impl Workspace {
          });
      }
  
@@ -214,7 +214,7 @@ index 6471a6d5..cb94c959 100644
      fn show_handoff_environment_creation_modal(&mut self, ctx: &mut ViewContext<Self>) {
          // Capture the initiating source view now, before async creation begins.
          // If we waited until the Created callback, the user may have switched panes.
-@@ -22690,6 +22730,12 @@ impl TypedActionView for Workspace {
+@@ -23294,6 +23334,12 @@ impl TypedActionView for Workspace {
              OpenNetworkLogPane => {
                  self.open_network_log_pane(ctx);
              }

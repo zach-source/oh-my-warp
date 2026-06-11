@@ -1,4 +1,4 @@
-From 1353d1cc1a0887caa639d6222bf3ab60c5f49853 Mon Sep 17 00:00:00 2001
+From c3116fb7f9be562944f42d32d44c8b309721cfc9 Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Thu, 21 May 2026 16:51:24 -0400
 Subject: [PATCH 22/46] Make plugin command return value optional (fix 'oneshot
@@ -64,7 +64,7 @@ index 91ef8a34..7ba953bc 100644
              }),
          ),
 diff --git a/app/src/search/command_palette/view.rs b/app/src/search/command_palette/view.rs
-index 8410fae5..9779328f 100644
+index d4a96ad9..565936f3 100644
 --- a/app/src/search/command_palette/view.rs
 +++ b/app/src/search/command_palette/view.rs
 @@ -752,8 +752,10 @@ impl View {
