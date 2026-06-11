@@ -1,7 +1,7 @@
-From 44864543c24adecb5c091867a2fd0e0b28778b70 Mon Sep 17 00:00:00 2001
+From a8705024bd798fd07fb12dee7e354ed52d8a8773 Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Fri, 5 Jun 2026 00:30:21 -0400
-Subject: [PATCH 46/47] Adapt overlay patches to upstream sync (AIClient trait,
+Subject: [PATCH 46/48] Adapt overlay patches to upstream sync (AIClient trait,
  Dropdown PartialEq)
 
 Upstream 03ad9ea9 (216 commits) changed APIs our patches use: the AIClient trait gained 11 methods and list_agents dropped its repo param, so GrpcBridgeAIClient delegates the new ones to inner; Dropdown<T> now requires T: PartialEq, so BackendAction and GrpcHarnessAction derive it; SpawnAgentRequest.prompt is now Option<String>; AmbientAgentTask gained a run_time field. cargo check -p warp --lib passes.

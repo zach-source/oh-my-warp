@@ -46,4 +46,5 @@
 0044-warp.prompt-themed-kind-icon-for-plugin-prompt-segme.patch
 0045-Add-warp.ui.setStatusItem-id-item-plugin-status-pill.patch
 0046-Adapt-overlay-patches-to-upstream-sync-AIClient-trai.patch
-0047-Wrap-every-shell-in-a-tmux-session-for-crash-quit-re.patch
+0047-Add-warpkeep-durable-terminal-sessions-oh-my-warp.patch
+0048-Wrap-every-shell-in-a-warpkeep-session-for-crash-qui.patch

@@ -1,7 +1,7 @@
-From c112845ad34254b51ce1efada02f558f10608728 Mon Sep 17 00:00:00 2001
+From 776c093d0cad5e809bdf9a967b5492218d4a41cf Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Wed, 3 Jun 2026 08:35:07 -0400
-Subject: [PATCH 45/47] Add warp.ui.setStatusItem(id, item): plugin status
+Subject: [PATCH 45/48] Add warp.ui.setStatusItem(id, item): plugin status
  pills in the tab bar (oh-my-warp)
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
