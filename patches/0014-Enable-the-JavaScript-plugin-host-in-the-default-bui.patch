@@ -1,4 +1,4 @@
-From 8ae7f2e145025858b5663091e31377d1c6215806 Mon Sep 17 00:00:00 2001
+From 29ddb010d9cbebf86a1328d83b60de1e0db7d20e Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Thu, 21 May 2026 10:19:01 -0400
 Subject: [PATCH 14/48] Enable the JavaScript plugin host in the default build

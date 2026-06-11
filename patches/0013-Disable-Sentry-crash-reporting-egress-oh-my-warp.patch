@@ -1,4 +1,4 @@
-From ef1a0c47781208a50a8614eda6858d2da71928d0 Mon Sep 17 00:00:00 2001
+From 95c7400f9c7d64167c3450a02cf6e0eea0e295e5 Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Thu, 21 May 2026 08:38:00 -0400
 Subject: [PATCH 13/48] Disable Sentry crash-reporting egress (oh-my-warp)

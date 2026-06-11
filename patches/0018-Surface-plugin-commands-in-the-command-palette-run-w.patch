@@ -1,4 +1,4 @@
-From 3e2439fe4be02f0f826fde2e61e1ec41fd754ecc Mon Sep 17 00:00:00 2001
+From e4f5c1f03d48e79b5f08bda69418553695be667d Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Thu, 21 May 2026 11:37:28 -0400
 Subject: [PATCH 18/48] Surface plugin commands in the command palette + run

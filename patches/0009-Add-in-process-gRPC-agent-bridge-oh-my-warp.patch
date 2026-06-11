@@ -1,4 +1,4 @@
-From a41af2391c231f55705ddeefc9c2637a5b4c31d7 Mon Sep 17 00:00:00 2001
+From 0b8028adf5ec796dae09b18a825291947943e1b7 Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Wed, 20 May 2026 22:48:46 -0400
 Subject: [PATCH 09/48] Add in-process gRPC agent bridge (oh-my-warp)

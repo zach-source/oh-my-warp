@@ -1,6 +1,6 @@
-From bbae4b123bd1b7380b017051dc4128a59d9bdca1 Mon Sep 17 00:00:00 2001
+From 2ff6455d30449cc046e4ef8e29dc2b9842479b17 Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
-Date: Thu, 11 Jun 2026 15:47:26 -0400
+Date: Thu, 11 Jun 2026 16:57:53 -0400
 Subject: [PATCH 48/48] Wrap every shell in a warpkeep session for crash/quit
  recovery (oh-my-warp)
 

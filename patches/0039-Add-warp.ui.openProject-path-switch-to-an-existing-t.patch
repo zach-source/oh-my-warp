@@ -1,4 +1,4 @@
-From d60e9555077779b07b11e46d4999bc693842b73e Mon Sep 17 00:00:00 2001
+From 9c19dd9ca176dedf18a26bc42079be308830e292 Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Mon, 25 May 2026 14:07:04 -0400
 Subject: [PATCH 39/48] Add warp.ui.openProject(path): switch to an existing

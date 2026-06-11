@@ -1,4 +1,4 @@
-From 776c093d0cad5e809bdf9a967b5492218d4a41cf Mon Sep 17 00:00:00 2001
+From 77cc8818ff72e3425e59566fbcb3ec03f1c6bd40 Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Wed, 3 Jun 2026 08:35:07 -0400
 Subject: [PATCH 45/48] Add warp.ui.setStatusItem(id, item): plugin status

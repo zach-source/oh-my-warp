@@ -1,4 +1,4 @@
-From 0bc783eb85ef67913cad4847b119f2fdf3733788 Mon Sep 17 00:00:00 2001
+From d27c97a19d1d604154a4602eff846c7587ee4223 Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Fri, 22 May 2026 18:48:45 -0400
 Subject: [PATCH 29/48] Add FrameImage element + StaticImage::from_rgba for

@@ -1,4 +1,4 @@
-From a9d32efec17b0c70374b78268595e7697fa7f910 Mon Sep 17 00:00:00 2001
+From 7c9a8b47b92ebd15bf68b82fa36715c165365744 Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Fri, 22 May 2026 22:44:35 -0400
 Subject: [PATCH 34/48] Add warp.ui.openWebTab: open an embedded browser pane

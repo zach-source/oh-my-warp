@@ -1,4 +1,4 @@
-From a8705024bd798fd07fb12dee7e354ed52d8a8773 Mon Sep 17 00:00:00 2001
+From 37d4a21bee034d226c5718cd8427c8d90f8a5078 Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Fri, 5 Jun 2026 00:30:21 -0400
 Subject: [PATCH 46/48] Adapt overlay patches to upstream sync (AIClient trait,

@@ -1,4 +1,4 @@
-From 5b1ec264796b1c69ffaca8148612ba6d0f106d2f Mon Sep 17 00:00:00 2001
+From d4a8530c8a43cacdcc1063cc0b20481d6eadc52d Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Thu, 21 May 2026 22:41:31 -0400
 Subject: [PATCH 25/48] Add Settings list of installed plugins (name, version,

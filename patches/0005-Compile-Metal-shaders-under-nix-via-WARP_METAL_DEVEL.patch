@@ -1,4 +1,4 @@
-From d11d2604741f74da0bf1d00e550b99cc70e63899 Mon Sep 17 00:00:00 2001
+From 2f87772f66b4aaf65d12e7dc67dbed381375bbd2 Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Wed, 20 May 2026 12:29:17 -0400
 Subject: [PATCH 05/48] Compile Metal shaders under nix via

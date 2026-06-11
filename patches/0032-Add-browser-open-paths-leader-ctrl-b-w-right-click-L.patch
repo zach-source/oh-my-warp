@@ -1,4 +1,4 @@
-From c48a5c71ba12316d189816377a67a63d0f0a356f Mon Sep 17 00:00:00 2001
+From 33ee1728aa0c1df967eb2ca751c0ee80237a1a1f Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Fri, 22 May 2026 18:48:46 -0400
 Subject: [PATCH 32/48] Add browser open paths: leader ctrl-b w, right-click

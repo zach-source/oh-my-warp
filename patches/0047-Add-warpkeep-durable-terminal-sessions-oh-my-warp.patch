@@ -1,23 +1,29 @@
-From 9d35b951715756d941aa4fd34e2fdd9813733199 Mon Sep 17 00:00:00 2001
+From 1023b5154958ddf7d3b8320fddb4030551c7013d Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
-Date: Thu, 11 Jun 2026 15:47:26 -0400
+Date: Thu, 11 Jun 2026 16:57:52 -0400
 Subject: [PATCH 47/48] Add warpkeep durable terminal sessions (oh-my-warp)
 
 A transparent, dtach-style session keeper bundled into the warp-oss binary
-(hidden `warpkeep`/`warpkeep-master` worker subcommands, like the terminal
-server). The shell runs in a detached master process that owns an inner PTY and
-survives the GUI dying; an attach client relays bytes verbatim so Warp keeps
-rendering blocks/AI. On reattach the master replays a ring buffer so the screen
-repaints. Orphaned sessions are auto-recovered after a crash; a flock-based
-single-attach lock prevents mirroring.
+(hidden warpkeep/warpkeep-master worker subcommands, like the terminal server).
+The shell runs in a detached master that owns an inner PTY and survives the GUI
+dying; an attach client relays bytes verbatim so Warp keeps rendering blocks/AI.
+On reattach the master replays a ring buffer so the screen repaints. Orphaned
+sessions auto-recover after a crash; a flock-based single-attach lock prevents
+mirroring.
+
+Sockets/PTY fds are kept BLOCKING with reads gated by poll: a non-blocking
+write_all of a large burst (Warp's multi-KB shell-bootstrap init script) would
+hit WouldBlock and silently drop bytes, breaking the bootstrap. On BSD/macOS the
+accepted stream inherits the listener's non-blocking flag, so it is reset to
+blocking.
 ---
  app/src/lib.rs                                |  18 +
  app/src/terminal/local_tty/mod.rs             |   2 +
- app/src/terminal/local_tty/warpkeep/attach.rs | 347 ++++++++++++++++++
- app/src/terminal/local_tty/warpkeep/master.rs | 253 +++++++++++++
+ app/src/terminal/local_tty/warpkeep/attach.rs | 348 ++++++++++++++++++
+ app/src/terminal/local_tty/warpkeep/master.rs | 260 +++++++++++++
  app/src/terminal/local_tty/warpkeep/mod.rs    |  72 ++++
  crates/warp_cli/src/lib.rs                    |  36 ++
- 6 files changed, 728 insertions(+)
+ 6 files changed, 736 insertions(+)
  create mode 100644 app/src/terminal/local_tty/warpkeep/attach.rs
  create mode 100644 app/src/terminal/local_tty/warpkeep/master.rs
  create mode 100644 app/src/terminal/local_tty/warpkeep/mod.rs
@@ -66,10 +72,10 @@ index 427d8b69..cda6c48e 100644
  
 diff --git a/app/src/terminal/local_tty/warpkeep/attach.rs b/app/src/terminal/local_tty/warpkeep/attach.rs
 new file mode 100644
-index 00000000..480ce696
+index 00000000..7386547a
 --- /dev/null
 +++ b/app/src/terminal/local_tty/warpkeep/attach.rs
-@@ -0,0 +1,347 @@
+@@ -0,0 +1,348 @@
 +//! warpkeep attach: the client the shell-spawn wrap actually invokes. Picks an
 +//! orphaned session to recover (or creates a fresh master), then relays bytes
 +//! verbatim between Warp's PTY (our stdin/stdout) and the master's socket.
@@ -201,10 +207,11 @@ index 00000000..480ce696
 +    // SIGWINCH self-pipe: the handler writes a byte we poll for.
 +    let winch_fd = install_winch_pipe();
 +
-+    set_nonblocking(stdin);
-+    set_nonblocking(stdout);
++    // Keep stdin/stdout/socket BLOCKING: reads are gated by `poll` (so they
++    // never block), and writes block until fully drained. A non-blocking
++    // `write_all` of a large burst (e.g. Warp's shell-bootstrap init script)
++    // would hit `WouldBlock` and silently drop bytes, breaking the bootstrap.
 +    let sock_fd = stream.as_raw_fd();
-+    set_nonblocking(sock_fd);
 +
 +    let mut buf = [0u8; READ_CHUNK];
 +    loop {
@@ -419,10 +426,10 @@ index 00000000..480ce696
 +}
 diff --git a/app/src/terminal/local_tty/warpkeep/master.rs b/app/src/terminal/local_tty/warpkeep/master.rs
 new file mode 100644
-index 00000000..ba088e7a
+index 00000000..848e7872
 --- /dev/null
 +++ b/app/src/terminal/local_tty/warpkeep/master.rs
-@@ -0,0 +1,253 @@
+@@ -0,0 +1,260 @@
 +//! warpkeep master: owns the inner PTY + shell and serves attach clients over a
 +//! Unix socket. Detached from Warp's process/PTY (the spawner sets `setsid` and
 +//! redirects std fds to `/dev/null`), so it survives the GUI dying.
@@ -437,7 +444,7 @@ index 00000000..ba088e7a
 +use command::blocking::Command;
 +use nix::pty::openpty;
 +
-+use super::{set_nonblocking, set_winsize, READ_CHUNK, RING_CAPACITY, TAG_DATA, TAG_WINCH};
++use super::{set_winsize, READ_CHUNK, RING_CAPACITY, TAG_DATA, TAG_WINCH};
 +
 +/// Run the master event loop: spawn the shell in an inner PTY and relay between
 +/// it and (at most one) connected attach client until the shell exits.
@@ -478,11 +485,15 @@ index 00000000..ba088e7a
 +        .spawn()
 +        .context("failed to spawn shell under warpkeep")?;
 +
-+    // The parent (master) keeps only the PTY master fd.
++    // The parent (master) keeps only the PTY master fd. We deliberately keep it
++    // (and the client socket) in BLOCKING mode: reads are gated by `poll`, so
++    // they never block, while writes block until fully drained. That is what
++    // makes the relay lossless — a non-blocking `write_all` of a large burst
++    // (e.g. Warp's multi-KB shell-bootstrap init script) would hit `WouldBlock`
++    // and silently drop bytes, corrupting the bootstrap.
 +    unsafe {
 +        libc::close(slave_fd);
 +    }
-+    set_nonblocking(master_fd);
 +
 +    // Bind the session socket.
 +    let _ = std::fs::remove_file(&socket);
@@ -585,6 +596,10 @@ index 00000000..ba088e7a
 +    master_fd: RawFd,
 +    ring: &VecDeque<u8>,
 +) -> Result<UnixStream> {
++    // On BSD/macOS `accept()` inherits the listener's non-blocking flag, so force
++    // the accepted stream back to BLOCKING. It stays blocking for the whole event
++    // loop (see `run_master`): reads are gated by `poll` so they never block, and
++    // writes block until fully drained — which is what keeps the relay lossless.
 +    stream.set_nonblocking(false)?;
 +    let mut header = [0u8; 4];
 +    stream.read_exact(&mut header)?;
@@ -597,7 +612,6 @@ index 00000000..ba088e7a
 +    stream.write_all(&(snapshot.len() as u32).to_ne_bytes())?;
 +    stream.write_all(&snapshot)?;
 +
-+    stream.set_nonblocking(true)?;
 +    Ok(stream)
 +}
 +

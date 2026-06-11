@@ -1,4 +1,4 @@
-From 350249d30a39f5411fb5466a2f293aa8e141f177 Mon Sep 17 00:00:00 2001
+From 2e935da9fbefd2def2f7b711a2027aa929c99374 Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Tue, 2 Jun 2026 22:25:34 -0400
 Subject: [PATCH 41/48] warp.prompt: render plugin segments in the agent input

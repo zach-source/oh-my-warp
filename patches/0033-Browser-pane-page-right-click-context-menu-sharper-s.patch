@@ -1,4 +1,4 @@
-From 27e41dd875668fb3f6c96ea632fdcd128d261bc2 Mon Sep 17 00:00:00 2001
+From 958b3c8b56f8f3d0b7b59aa36c1a79b0c3af4de2 Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Fri, 22 May 2026 19:02:34 -0400
 Subject: [PATCH 33/48] Browser pane: page right-click context menu + sharper

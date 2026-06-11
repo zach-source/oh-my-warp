@@ -1,4 +1,4 @@
-From 05db767f4563b28ca6f90524d8656ca268c18f6a Mon Sep 17 00:00:00 2001
+From f748284a6b857443ff75ed0b6a514e01932bd8cf Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Tue, 2 Jun 2026 22:52:11 -0400
 Subject: [PATCH 44/48] warp.prompt: themed kind + icon for plugin prompt

@@ -1,4 +1,4 @@
-From 09c3ff53eb5906b3091a0e527923f5b1973ee523 Mon Sep 17 00:00:00 2001
+From 57309f0999dcb00a464930aab0b3c1065c1e37bd Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Wed, 27 May 2026 14:06:16 -0400
 Subject: [PATCH 40/48] Add warp.prompt: plugin-contributed native prompt

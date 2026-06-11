@@ -1,4 +1,4 @@
-From 75de5f965319f5f4b7c3801d4ea99d6546b1465b Mon Sep 17 00:00:00 2001
+From 4b5bc3fbac4fe3c73d3ebdd5e45501201b1ff55a Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Tue, 2 Jun 2026 22:49:11 -0400
 Subject: [PATCH 43/48] Polish warp.ui.showMarkdown modal (oh-my-warp)
