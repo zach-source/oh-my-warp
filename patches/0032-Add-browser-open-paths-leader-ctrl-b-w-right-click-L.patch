@@ -1,7 +1,7 @@
-From 87f427eaa27b7099c4786e4f4ad418b3b823fdc9 Mon Sep 17 00:00:00 2001
+From 728814181f7b738991b10da6b27cd5d276971486 Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Fri, 22 May 2026 18:48:46 -0400
-Subject: [PATCH 32/46] Add browser open paths: leader ctrl-b w, right-click
+Subject: [PATCH 32/47] Add browser open paths: leader ctrl-b w, right-click
  Launch Web Pane, +/File menu New Web Tab (oh-my-warp)
 
 ---

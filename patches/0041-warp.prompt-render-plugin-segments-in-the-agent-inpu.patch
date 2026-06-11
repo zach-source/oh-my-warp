@@ -1,7 +1,7 @@
-From a86f35b5281b07243247598a429bd1785154e508 Mon Sep 17 00:00:00 2001
+From 8f0d804b7ba45f826bf65f8cbe765dff13c0a0f7 Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Tue, 2 Jun 2026 22:25:34 -0400
-Subject: [PATCH 41/46] warp.prompt: render plugin segments in the agent input
+Subject: [PATCH 41/47] warp.prompt: render plugin segments in the agent input
  footer too (oh-my-warp)
 
 Pull the chip-rendering for plugin prompt segments out of PromptDisplay into a

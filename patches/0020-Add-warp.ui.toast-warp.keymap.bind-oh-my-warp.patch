@@ -1,7 +1,7 @@
-From 6d18531beb4c4d40f5290bbc20ef30bf708256f3 Mon Sep 17 00:00:00 2001
+From cfda29f8aec08bcce4a9b3183fd4653d0ca6ff67 Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Thu, 21 May 2026 13:31:39 -0400
-Subject: [PATCH 20/46] Add warp.ui.toast + warp.keymap.bind (oh-my-warp)
+Subject: [PATCH 20/47] Add warp.ui.toast + warp.keymap.bind (oh-my-warp)
 
 Two host->app plugin APIs that need an AppContext: warp.ui.toast(message, kind?)
 and warp.keymap.bind(commandId, keys). The IPC handler enqueues a PluginAppRequest

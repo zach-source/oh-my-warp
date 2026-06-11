@@ -1,7 +1,7 @@
-From 1937943108880b2b83a530114cdc486fee6117ac Mon Sep 17 00:00:00 2001
+From 328b5555522866da196544db598f2346d6335071 Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Mon, 25 May 2026 01:27:52 -0400
-Subject: [PATCH 36/46] Persist browser panes (URL) across app restart: new
+Subject: [PATCH 36/47] Persist browser panes (URL) across app restart: new
  browser_panes table + LeafContents::Browser { url } (oh-my-warp)
 
 ---

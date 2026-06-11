@@ -1,7 +1,7 @@
-From 584aa79fd70e8fdecb362fcefeb322c54484d5c6 Mon Sep 17 00:00:00 2001
+From 0dbb82cb9e7fada86500166e3bb0d6f7b09a7b99 Mon Sep 17 00:00:00 2001
 From: Zach Taylor <zctaylor.work@gmail.com>
 Date: Tue, 2 Jun 2026 22:49:11 -0400
-Subject: [PATCH 43/46] Polish warp.ui.showMarkdown modal (oh-my-warp)
+Subject: [PATCH 43/47] Polish warp.ui.showMarkdown modal (oh-my-warp)
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
